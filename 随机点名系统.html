@@ -1,0 +1,1691 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>随机点名系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #FF6B6B;
+            --secondary-color: #4ECDC4;
+            --success-color: #51CF66;
+            --warning-color: #FFD93D;
+            --danger-color: #FF6B6B;
+            --info-color: #3742FA;
+            --dark-color: #2C3E50;
+            --light-color: #F8F9FA;
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark-color);
+            line-height: 1.8;
+            font-size: 18px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+
+        .header {
+            background: var(--bg-gradient);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            margin-bottom: 40px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .system-selector {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .system-btn {
+            padding: 15px 30px;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            font-size: 1.1em;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+        }
+
+        .system-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .system-btn.active {
+            background: white;
+            color: var(--primary-color);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .add-system-btn {
+            padding: 15px 30px;
+            background: var(--success-color);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(81, 207, 102, 0.3);
+        }
+
+        .add-system-btn:hover {
+            background: #3dd36f;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(81, 207, 102, 0.4);
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        .nav-tabs::before {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--success-color), var(--warning-color));
+            border-radius: 2px;
+        }
+
+        .nav-tab {
+            padding: 20px 40px;
+            background: white;
+            border: none;
+            border-radius: 15px 15px 0 0;
+            cursor: pointer;
+            font-size: 1.2em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.08);
+            color: var(--dark-color);
+        }
+
+        .nav-tab:hover {
+            background: var(--light-color);
+            transform: translateY(-3px);
+        }
+
+        .nav-tab.active {
+            background: white;
+            color: var(--primary-color);
+            box-shadow: 0 -5px 25px rgba(255, 107, 107, 0.2);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        .card-title {
+            font-size: 1.5em;
+            margin-bottom: 25px;
+            color: var(--dark-color);
+            font-weight: 600;
+        }
+
+        .grid-5 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .name-tag {
+            padding: 18px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            font-size: 1.1em;
+            font-weight: 500;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .name-tag::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.6s;
+        }
+
+        .name-tag:hover::before {
+            left: 100%;
+        }
+
+        .name-tag:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .name-tag.selected {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+            color: white;
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
+        .draw-controls {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .draw-btn {
+            padding: 18px 40px;
+            background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1.2em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(78, 205, 196, 0.3);
+            min-width: 150px;
+        }
+
+        .draw-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(78, 205, 196, 0.4);
+        }
+
+        .draw-btn.reset-btn {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .draw-btn.reset-btn:hover {
+            box-shadow: 0 12px 30px rgba(255, 107, 107, 0.4);
+        }
+
+        .drawn-pool {
+            min-height: 120px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 20px;
+            padding: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            border: 2px dashed rgba(0,0,0,0.1);
+        }
+
+        .drawn-name {
+            background: white;
+            padding: 20px 35px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 1.2em;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            animation: bounceIn 1.2s ease;
+            position: relative;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            transition: all 0.3s ease;
+        }
+
+        .drawn-name::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 30px;
+            z-index: -1;
+            background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+            background-clip: padding-box;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .form-group {
+            margin-bottom: 30px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 600;
+            font-size: 1.2em;
+            color: var(--dark-color);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 18px;
+            border: 3px solid var(--light-color);
+            border-radius: 15px;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            background: var(--light-color);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.1);
+            background: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3742FA 0%, #2F3542 100%);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1.2em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(55, 66, 250, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(55, 66, 250, 0.4);
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px;
+            background: white;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .history-item:hover {
+            transform: translateX(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border-color: var(--primary-color);
+        }
+
+        .history-content {
+            flex: 1;
+        }
+
+        .history-date {
+            color: #7f8c8d;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+        }
+
+        .history-names {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .history-name {
+            background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 1em;
+            font-weight: 500;
+            box-shadow: 0 3px 10px rgba(78, 205, 196, 0.3);
+        }
+
+        .statistics-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .statistics-table th,
+        .statistics-table td {
+            padding: 20px;
+            text-align: left;
+            border-bottom: 2px solid var(--light-color);
+            font-size: 1.1em;
+        }
+
+        .statistics-table th {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+            color: white;
+            font-weight: 600;
+            font-size: 1.2em;
+        }
+
+        .statistics-table tr:hover {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 25px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 600px;
+            border: 3px solid var(--primary-color);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid var(--light-color);
+        }
+
+        .close-btn {
+            font-size: 35px;
+            cursor: pointer;
+            color: var(--dark-color);
+            transition: all 0.3s ease;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .close-btn:hover {
+            color: var(--danger-color);
+            background: var(--light-color);
+            transform: rotate(90deg);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            background: linear-gradient(135deg, var(--dark-color) 0%, #495057 100%);
+            color: white;
+            padding: 20px 35px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: none;
+            animation: slideIn 0.5s ease;
+            font-size: 1.1em;
+            font-weight: 500;
+            max-width: 400px;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(150%); }
+            to { transform: translateX(0); }
+        }
+
+        .system-settings-item {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .system-settings-item:hover {
+            transform: translateX(10px);
+            border-color: var(--primary-color);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .system-info h3 {
+            font-size: 1.3em;
+            margin-bottom: 8px;
+            color: var(--dark-color);
+        }
+
+        .system-info p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        .system-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn-edit {
+            padding: 10px 25px;
+            background: linear-gradient(135deg, #3742FA 0%, #2F3542 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-edit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(55, 66, 250, 0.4);
+        }
+
+        .btn-delete {
+            padding: 10px 25px;
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-delete:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-switch {
+            padding: 10px 25px;
+            background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-switch:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(78, 205, 196, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-danger:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .add-system-section {
+            background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(78, 205, 196, 0.3);
+        }
+
+        .add-system-section h3 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+
+        .add-system-form {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .add-system-form .form-group {
+            flex: 1;
+            min-width: 250px;
+            margin-bottom: 0;
+        }
+
+        .add-system-form .btn-primary {
+            background: white;
+            color: var(--success-color);
+            border: none;
+            min-width: 150px;
+        }
+
+        .add-system-form .btn-primary:hover {
+            background: var(--light-color);
+        }
+
+        .system-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        .history-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .history-status {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+
+        @media (max-width: 768px) {
+            .grid-5 {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            }
+            
+            .header h1 {
+                font-size: 2.2em;
+            }
+            
+            .nav-tabs {
+                gap: 10px;
+            }
+            
+            .nav-tab {
+                padding: 15px 20px;
+                font-size: 1em;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            .draw-controls {
+                gap: 10px;
+            }
+            
+            .draw-btn {
+                padding: 15px 25px;
+                font-size: 1em;
+                min-width: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎲 随机点名系统</h1>
+            <div class="system-selector" id="systemSelector">
+                <button class="system-btn active" data-system="default">默认系统</button>
+                <button class="add-system-btn" onclick="showAddSystemModal()">+ 添加系统</button>
+            </div>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="switchTab('draw')">🎯 点名页</button>
+            <button class="nav-tab" onclick="switchTab('manage')">📝 名单管理</button>
+            <button class="nav-tab" onclick="switchTab('history')">📊 历史记录</button>
+            <button class="nav-tab" onclick="switchTab('statistics')">📈 统计</button>
+            <button class="nav-tab" onclick="switchTab('settings')">⚙️ 系统管理</button>
+        </div>
+
+        <!-- 点名页 -->
+        <div id="draw-tab" class="tab-content active">
+            <div class="card">
+                <h2 class="card-title">姓名池</h2>
+                <div class="grid-5" id="namePool"></div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">点名控制</h2>
+                <div class="draw-controls">
+                    <button class="draw-btn" onclick="drawNames(1)">抽1人</button>
+                    <button class="draw-btn" onclick="drawNames(5)">抽5人</button>
+                    <button class="draw-btn" onclick="drawNames(10)">抽10人</button>
+                    <button class="draw-btn reset-btn" onclick="resetSelections()">重置所有标记</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">抽取池</h2>
+                <div class="drawn-pool" id="drawnPool">
+                    <p style="color: #7f8c8d; font-size: 1.2em;">点击上方按钮开始抽取...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 名单管理页 -->
+        <div id="manage-tab" class="tab-content">
+            <div class="card">
+                <h2 class="card-title">添加/编辑名单</h2>
+                <div class="form-group">
+                    <label for="nameInput">姓名（用逗号或换行分隔）</label>
+                    <textarea id="nameInput" rows="6" placeholder="张三, 李四, 王五"></textarea>
+                </div>
+                <button class="btn-primary" onclick="updateNames()">更新名单</button>
+            </div>
+        </div>
+
+        <!-- 历史记录页 -->
+        <div id="history-tab" class="tab-content">
+            <div class="card">
+                <h2 class="card-title">历史记录</h2>
+                <div class="history-controls">
+                    <div class="history-status" id="historyStatus">共 0 条记录</div>
+                    <button class="btn-danger" onclick="showClearHistoryModal()" id="clearHistoryBtn" disabled>
+                        清空历史记录
+                    </button>
+                </div>
+                <div id="historyList"></div>
+            </div>
+        </div>
+
+        <!-- 统计页 -->
+        <div id="statistics-tab" class="tab-content">
+            <div class="system-stats" id="systemStats">
+                <!-- 统计卡片将通过JS生成 -->
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title">被抽中次数统计</h2>
+                <table class="statistics-table">
+                    <thead>
+                        <tr>
+                            <th>排名</th>
+                            <th>姓名</th>
+                            <th>被抽中次数</th>
+                            <th>成功率</th>
+                        </tr>
+                    </thead>
+                    <tbody id="statisticsBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 系统管理页 -->
+        <div id="settings-tab" class="tab-content">
+            <div class="add-system-section">
+                <h3>🚀 创建新系统</h3>
+                <div class="add-system-form">
+                    <div class="form-group">
+                        <label for="quickSystemName" style="color: white;">系统名称</label>
+                        <input type="text" id="quickSystemName" placeholder="输入系统名称">
+                    </div>
+                    <button class="btn-primary" onclick="quickAddSystem()">快速创建</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">管理系统</h2>
+                <div id="systemList"></div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">数据管理</h2>
+                <div style="padding: 20px 0;">
+                    <button class="btn-danger" onclick="showResetDataModal()" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);">
+                        🔄 初始化所有数据（系统清空）
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加系统弹窗（保留备用） -->
+    <div class="modal" id="addSystemModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>添加新系统</h2>
+                <span class="close-btn" onclick="hideAddSystemModal()">&times;</span>
+            </div>
+            <div class="form-group">
+                <label for="newSystemName">系统名称</label>
+                <input type="text" id="newSystemName" placeholder="请输入系统名称">
+            </div>
+            <button class="btn-primary" onclick="addNewSystem()">创建系统</button>
+        </div>
+    </div>
+
+    <!-- 编辑系统弹窗 -->
+    <div class="modal" id="editSystemModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>编辑系统名称</h2>
+                <span class="close-btn" onclick="hideEditSystemModal()">&times;</span>
+            </div>
+            <div class="form-group">
+                <label for="editSystemName">系统名称</label>
+                <input type="text" id="editSystemName" placeholder="请输入系统名称">
+            </div>
+            <button class="btn-primary" onclick="saveSystemName()">保存修改</button>
+        </div>
+    </div>
+
+    <!-- 清空历史记录弹窗 -->
+    <div class="modal" id="clearHistoryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>清空历史记录</h2>
+                <span class="close-btn" onclick="hideClearHistoryModal()">&times;</span>
+            </div>
+            <p style="margin-bottom: 30px; font-size: 1.1em; color: var(--dark-color);">
+                确定要清空当前系统的所有历史记录吗？此操作不可恢复！
+            </p>
+            <div style="display: flex; gap: 15px; justify-content: flex-end;">
+                <button class="btn-secondary" onclick="hideClearHistoryModal()">取消</button>
+                <button class="btn-danger" onclick="clearHistory()">确认清空</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 系统重置（初始化）弹窗 -->
+    <div class="modal" id="resetDataModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>系统初始化</h2>
+                <span class="close-btn" onclick="hideResetDataModal()">&times;</span>
+            </div>
+            <p style="margin-bottom: 30px; font-size: 1.1em; color: var(--dark-color);">
+                此操作将删除所有数据：<strong>所有系统、名单、历史记录、选择标记等都会被清除！</strong><br>
+                系统将恢复到初始状态。此操作不可恢复！
+            </p>
+            <div style="display: flex; gap: 15px; justify-content: flex-end;">
+                <button class="btn-secondary" onclick="hideResetDataModal()">取消</button>
+                <button class="btn-danger" onclick="resetAllData()">确认初始化</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 提示 -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // 数据管理 - 优化结构
+        let currentSystem = 'default';
+        let systems = {
+            default: {
+                name: '默认系统',
+                names: ['张三', '李四', '王五', '赵六', '钱七', '孙八', '周九', '吴十', '郑十一', '王十二', '李十三', '张十四'],
+                selections: [],
+                history: []
+            }
+        };
+
+        // 初始化
+        window.onload = function() {
+            loadData();
+            renderSystems();
+            renderNamePool();
+            renderHistory();
+            updateStatistics();
+            updateSystemStats();
+            updateHistoryStatus();
+            
+            // 确保默认打开点名页
+            switchTab('draw');
+        };
+
+        // 本地存储
+        function saveData() {
+            localStorage.setItem('点名系统数据', JSON.stringify(systems));
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('点名系统数据');
+            if (saved) {
+                systems = JSON.parse(saved);
+                currentSystem = Object.keys(systems)[0] || 'default';
+            }
+        }
+
+        // 渲染系统列表
+        function renderSystems() {
+            const selector = document.getElementById('systemSelector');
+            selector.innerHTML = '';
+            
+            Object.keys(systems).forEach(sysKey => {
+                const btn = document.createElement('button');
+                btn.className = `system-btn ${sysKey === currentSystem ? 'active' : ''}`;
+                btn.textContent = systems[sysKey].name;
+                btn.dataset.system = sysKey;
+                btn.onclick = () => switchSystem(sysKey);
+                selector.insertBefore(btn, selector.lastElementChild);
+            });
+        }
+
+        // 切换系统 - 优化逻辑
+        function switchSystem(systemKey) {
+            if (systemKey === currentSystem) return;
+            
+            currentSystem = systemKey;
+            document.querySelectorAll('.system-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.system === systemKey);
+            });
+            
+            renderNamePool();
+            renderHistory();
+            updateStatistics();
+            updateSystemStats();
+            updateHistoryStatus();
+            showToast(`已切换到 ${systems[systemKey].name}`);
+        }
+
+        // 快速添加系统
+        function quickAddSystem() {
+            const name = document.getElementById('quickSystemName').value.trim();
+            if (!name) {
+                showToast('请输入系统名称');
+                return;
+            }
+            
+            createNewSystem(name);
+            document.getElementById('quickSystemName').value = '';
+        }
+
+        // 创建新系统 - 提取公共逻辑
+        function createNewSystem(name) {
+            const key = 'system_' + Date.now();
+            systems[key] = {
+                name: name,
+                names: [],
+                selections: [],
+                history: []
+            };
+            
+            saveData();
+            renderSystems();
+            renderSystemSettings();
+            showToast(`成功创建系统：${name}`);
+            return key;
+        }
+
+        // 编辑系统 - 优化逻辑
+        function showEditSystemModal(systemKey) {
+            const modal = document.getElementById('editSystemModal');
+            const nameInput = document.getElementById('editSystemName');
+            
+            nameInput.value = systems[systemKey].name;
+            modal.style.display = 'block';
+            
+            // 焦点到输入框
+            setTimeout(() => nameInput.focus(), 100);
+        }
+
+        function hideEditSystemModal() {
+            document.getElementById('editSystemModal').style.display = 'none';
+        }
+
+        function saveSystemName() {
+            const newName = document.getElementById('editSystemName').value.trim();
+            if (!newName) {
+                showToast('请输入系统名称');
+                return;
+            }
+            
+            systems[currentSystem].name = newName;
+            saveData();
+            renderSystems();
+            renderSystemSettings();
+            hideEditSystemModal();
+            showToast(`系统名称已更新为：${newName}`);
+        }
+
+        // 切换标签页 - 优化逻辑
+        function switchTab(tabName) {
+            // 更新标签状态
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.textContent.includes(getTabName(tabName)));
+            });
+            
+            // 更新内容显示
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            const targetTab = document.getElementById(`${tabName}-tab`);
+            if (targetTab) {
+                targetTab.classList.add('active');
+            }
+            
+            // 特殊处理
+            if (tabName === 'history') {
+                renderHistory();
+                updateHistoryStatus();
+            } else if (tabName === 'statistics') {
+                updateStatistics();
+                updateSystemStats();
+            } else if (tabName === 'settings') {
+                renderSystemSettings();
+            }
+        }
+
+        function getTabName(tabKey) {
+            const names = {
+                'draw': '🎯 点名页',
+                'manage': '📝 名单管理',
+                'history': '📊 历史记录',
+                'statistics': '📈 统计',
+                'settings': '⚙️ 系统管理'
+            };
+            return names[tabKey] || '';
+        }
+
+        // 渲染姓名池 - 优化独立逻辑
+        function renderNamePool() {
+            const pool = document.getElementById('namePool');
+            pool.innerHTML = '';
+            
+            const system = systems[currentSystem];
+            if (!system.names || system.names.length === 0) {
+                pool.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #7f8c8d; font-size: 1.2em;">暂无姓名，请在名单管理中添加</p>';
+                return;
+            }
+            
+            system.names.forEach((name, index) => {
+                const tag = createNameTag(name, system);
+                pool.appendChild(tag);
+            });
+        }
+
+        // 创建姓名标签
+        function createNameTag(name, system) {
+            const tag = document.createElement('div');
+            tag.className = 'name-tag';
+            
+            if (system.selections.includes(name)) {
+                tag.classList.add('selected');
+                tag.textContent = name;
+            } else {
+                tag.textContent = name;
+                tag.onclick = () => toggleSelection(name);
+            }
+            
+            return tag;
+        }
+
+        // 切换选中状态 - 优化逻辑
+        function toggleSelection(name) {
+            const system = systems[currentSystem];
+            const index = system.selections.indexOf(name);
+            
+            if (index > -1) {
+                system.selections.splice(index, 1);
+            } else {
+                system.selections.push(name);
+            }
+            
+            saveData();
+            renderNamePool();
+        }
+
+        // 更新名单
+        function updateNames() {
+            const input = document.getElementById('nameInput').value.trim();
+            if (!input) {
+                showToast('请输入姓名');
+                return;
+            }
+            
+            const names = input.split(/[,\n]/).map(n => n.trim()).filter(n => n);
+            
+            // 获取当前系统
+            const system = systems[currentSystem];
+            
+            // 清理不存在的选择
+            system.selections = system.selections.filter(s => names.includes(s));
+            
+            system.names = names;
+            saveData();
+            renderNamePool();
+            showToast(`已更新 ${names.length} 个姓名`);
+        }
+
+        // 抽取姓名 - 优化逻辑和动画
+        function drawNames(count) {
+            const system = systems[currentSystem];
+            const availableNames = getAvailableNames(system);
+            
+            if (availableNames.length === 0) {
+                showToast('没有可抽取的人员');
+                return;
+            }
+            
+            const drawCount = Math.min(count, availableNames.length);
+            const drawnNames = selectRandomNames(availableNames, drawCount);
+            
+            // 更新抽取池
+            updateDrawnPool(drawnNames, system);
+            
+            // 更新选择列表
+            updateSelections(drawnNames, system);
+            
+            // 添加到历史记录
+            addToHistory(drawnNames);
+            
+            saveData();
+        }
+
+        // 获取可抽取的人员
+        function getAvailableNames(system) {
+            return system.names.filter(name => 
+                !system.selections.includes(name)
+            );
+        }
+
+        // 随机选择人员
+        function selectRandomNames(availableNames, count) {
+            const tempNames = [...availableNames];
+            const selected = [];
+            
+            for (let i = 0; i < count; i++) {
+                const index = Math.floor(Math.random() * tempNames.length);
+                selected.push(tempNames[index]);
+                tempNames.splice(index, 1);
+            }
+            
+            return selected;
+        }
+
+        // 更新抽取池 - 慢动画
+        function updateDrawnPool(drawnNames, system) {
+            const pool = document.getElementById('drawnPool');
+            pool.innerHTML = '';
+            
+            drawnNames.forEach((name, index) => {
+                setTimeout(() => {
+                    const tag = document.createElement('div');
+                    tag.className = 'drawn-name';
+                    tag.textContent = name;
+                    pool.appendChild(tag);
+                }, index * 400); // 减慢动画速度
+            });
+        }
+
+        // 更新选择列表 - 优化逻辑
+        function updateSelections(drawnNames, system) {
+            drawnNames.forEach(name => {
+                if (!system.selections.includes(name)) {
+                    system.selections.push(name);
+                }
+            });
+            
+            renderNamePool();
+        }
+
+        // 添加到历史记录
+        function addToHistory(drawnNames) {
+            const system = systems[currentSystem];
+            const now = new Date();
+            const record = {
+                timestamp: now.getTime(),
+                dateStr: now.toLocaleString('zh-CN'),
+                names: drawnNames
+            };
+            
+            system.history.unshift(record);
+            system.history = system.history.slice(0, 100); // 增加到100条
+            
+            saveData();
+        }
+
+        // 重置所有标记
+        function resetSelections() {
+            const system = systems[currentSystem];
+            system.selections = [];
+            saveData();
+            renderNamePool();
+            document.getElementById('drawnPool').innerHTML = '<p style="color: #7f8c8d; font-size: 1.2em;">点击上方按钮开始抽取...</p>';
+            showToast('已重置所有标记');
+        }
+
+        // 清空历史记录
+        function clearHistory() {
+            const system = systems[currentSystem];
+            system.history = [];
+            saveData();
+            renderHistory();
+            updateHistoryStatus();
+            hideClearHistoryModal();
+            showToast('历史记录已清空');
+        }
+
+        // 显示清空历史记录弹窗
+        function showClearHistoryModal() {
+            document.getElementById('clearHistoryModal').style.display = 'block';
+        }
+
+        // 隐藏清空历史记录弹窗
+        function hideClearHistoryModal() {
+            document.getElementById('clearHistoryModal').style.display = 'none';
+        }
+
+        // 渲染历史记录 - 优化样式
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            list.innerHTML = '';
+            
+            const system = systems[currentSystem];
+            if (!system.history || system.history.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: #7f8c8d; font-size: 1.3em;">暂无历史记录</p>';
+                return;
+            }
+            
+            system.history.forEach((record, index) => {
+                const item = createHistoryItem(record, index);
+                list.appendChild(item);
+            });
+        }
+
+        // 创建历史记录项
+        function createHistoryItem(record, index) {
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            
+            const namesContainer = document.createElement('div');
+            namesContainer.className = 'history-names';
+            record.names.forEach(name => {
+                const nameTag = document.createElement('span');
+                nameTag.className = 'history-name';
+                nameTag.textContent = name;
+                namesContainer.appendChild(nameTag);
+            });
+            
+            item.innerHTML = `
+                <div class="history-content">
+                    <div class="history-date">${record.dateStr}</div>
+                    <div class="history-names"></div>
+                </div>
+                <button onclick="markFromHistory(${index})" 
+                        style="padding: 12px 25px; border: 2px solid #3498db; 
+                               background: white; color: #3498db; border-radius: 25px; 
+                               cursor: pointer; font-weight: 600; font-size: 1em; 
+                               transition: all 0.3s ease;">
+                    标记
+                </button>
+            `;
+            
+            item.querySelector('.history-names').appendChild(namesContainer);
+            return item;
+        }
+
+        // 从历史记录中标记 - 优化逻辑
+        function markFromHistory(index) {
+            const record = systems[currentSystem].history[index];
+            const system = systems[currentSystem];
+            
+            record.names.forEach(name => {
+                if (!system.selections.includes(name)) {
+                    system.selections.push(name);
+                }
+            });
+            
+            saveData();
+            renderNamePool();
+            showToast('已从历史记录中标记');
+        }
+
+        // 更新历史记录状态
+        function updateHistoryStatus() {
+            const system = systems[currentSystem];
+            const statusText = `共 ${system.history.length || 0} 条记录`;
+            document.getElementById('historyStatus').textContent = statusText;
+            
+            const clearBtn = document.getElementById('clearHistoryBtn');
+            clearBtn.disabled = !system.history || system.history.length === 0;
+        }
+
+        // 更新统计数据 - 优化逻辑
+        function updateStatistics() {
+            const tbody = document.getElementById('statisticsBody');
+            tbody.innerHTML = '';
+            
+            const system = systems[currentSystem];
+            const stats = calculateStatistics(system);
+            
+            renderStatisticsTable(stats, tbody);
+        }
+
+        // 计算统计数据
+        function calculateStatistics(system) {
+            const stats = {};
+            
+            // 初始化统计
+            system.names.forEach(name => {
+                stats[name] = { count: 0 };
+            });
+            
+            // 计算被抽中次数
+            system.history.forEach(record => {
+                record.names.forEach(name => {
+                    if (stats.hasOwnProperty(name)) {
+                        stats[name].count++;
+                    }
+                });
+            });
+            
+            // 转换为数组并排序
+            return Object.entries(stats)
+                .map(([name, data]) => ({
+                    name,
+                    count: data.count,
+                    totalDrawn: system.history.length,
+                    successRate: system.history.length > 0 
+                        ? ((data.count / (system.history.length * (system.history[0].names.length || 1))) * 100).toFixed(1) 
+                        : 0
+                }))
+                .sort((a, b) => b.count - a.count);
+        }
+
+        // 渲染统计表格
+        function renderStatisticsTable(stats, tbody) {
+            if (stats.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #7f8c8d;">暂无统计数据</td></tr>';
+                return;
+            }
+            
+            stats.forEach((stat, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="font-weight: 600;">${index + 1}</td>
+                    <td style="font-weight: 500;">${stat.name}</td>
+                    <td style="font-weight: 600; color: #e74c3c;">${stat.count}</td>
+                    <td style="font-weight: 500; color: #3498db;">${stat.successRate}%</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // 更新系统统计卡片
+        function updateSystemStats() {
+            const container = document.getElementById('systemStats');
+            container.innerHTML = '';
+            
+            const system = systems[currentSystem];
+            const stats = getSystemStats(system);
+            
+            Object.entries(stats).forEach(([key, value]) => {
+                const card = createStatCard(key, value);
+                container.appendChild(card);
+            });
+        }
+
+        // 获取系统统计数据
+        function getSystemStats(system) {
+            const totalDraws = system.history.length;
+            const totalNames = system.names.length;
+            const selectedCount = system.selections.length;
+            
+            return {
+                totalNames,
+                totalDraws,
+                selectedCount,
+                avgPerDraw: totalDraws > 0 ? (system.history.reduce((sum, record) => sum + record.names.length, 0) / totalDraws).toFixed(1) : 0
+            };
+        }
+
+        // 创建统计卡片
+        function createStatCard(key, value) {
+            const card = document.createElement('div');
+            card.className = 'stat-card';
+            
+            const labels = {
+                totalNames: '总人数',
+                totalDraws: '总抽次',
+                selectedCount: '已选中',
+                avgPerDraw: '平均每次'
+            };
+            
+            card.innerHTML = `
+                <div class="stat-number">${value}</div>
+                <div class="stat-label">${labels[key]}</div>
+            `;
+            
+            return card;
+        }
+
+        // 渲染系统设置 - 优化逻辑
+        function renderSystemSettings() {
+            const list = document.getElementById('systemList');
+            list.innerHTML = '';
+            
+            Object.keys(systems).forEach(sysKey => {
+                const item = createSystemItem(sysKey);
+                list.appendChild(item);
+            });
+        }
+
+        // 创建系统项
+        function createSystemItem(systemKey) {
+            const system = systems[systemKey];
+            const item = document.createElement('div');
+            item.className = 'system-settings-item';
+            
+            const isDefault = systemKey === 'default';
+            const canEdit = !isDefault;
+            const canDelete = !isDefault && Object.keys(systems).length > 1;
+            
+            item.innerHTML = `
+                <div class="system-info">
+                    <h3>${system.name}</h3>
+                    <p>${system.names.length} 个学生 | ${system.history.length} 条记录</p>
+                </div>
+                <div class="system-actions">
+                    ${canEdit ? `<button onclick="showEditSystemModal('${systemKey}')" class="btn-edit">编辑</button>` : ''}
+                    ${canDelete ? `<button onclick="deleteSystem('${systemKey}')" class="btn-delete">删除</button>` : ''}
+                    <button onclick="switchSystem('${systemKey}')" class="btn-switch">切换到此系统</button>
+                </div>
+            `;
+            
+            return item;
+        }
+
+        // 删除系统 - 优化逻辑
+        function deleteSystem(systemKey) {
+            if (Object.keys(systems).length <= 1) {
+                showToast('至少需要保留一个系统');
+                return;
+            }
+            
+            if (confirm(`确定要删除系统 "${systems[systemKey].name}" 吗？此操作不可恢复！`)) {
+                delete systems[systemKey];
+                
+                // 如果删除的是当前系统，切换到默认系统
+                if (systemKey === currentSystem) {
+                    currentSystem = 'default';
+                    switchSystem('default');
+                }
+                
+                saveData();
+                renderSystems();
+                renderSystemSettings();
+                showToast(`已删除系统 ${systems[systemKey]?.name || ''}`);
+            }
+        }
+
+        // 系统重置（初始化） - 删除所有数据
+        function resetAllData() {
+            if (confirm('确定要初始化系统吗？此操作将删除所有数据！')) {
+                // 初始化默认数据
+                systems = {
+                    default: {
+                        name: '默认系统',
+                        names: ['张三', '李四', '王五', '赵六', '钱七', '孙八', '周九', '吴十', '郑十一', '王十二', '李十三', '张十四'],
+                        selections: [],
+                        history: []
+                    }
+                };
+                currentSystem = 'default';
+                
+                // 删除本地存储
+                localStorage.removeItem('点名系统数据');
+                
+                // 刷新页面以重新加载所有数据
+                location.reload();
+                
+                hideResetDataModal();
+                showToast('系统已初始化，所有数据已清空');
+            }
+        }
+
+        // 显示系统初始化弹窗
+        function showResetDataModal() {
+            document.getElementById('resetDataModal').style.display = 'block';
+        }
+
+        // 隐藏系统初始化弹窗
+        function hideResetDataModal() {
+            document.getElementById('resetDataModal').style.display = 'none';
+        }
+
+        // 显示提示 - 优化逻辑
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        // 添加系统弹窗相关函数 - 保留备用
+        function showAddSystemModal() {
+            const modal = document.getElementById('addSystemModal');
+            const nameInput = document.getElementById('newSystemName');
+            
+            modal.style.display = 'block';
+            setTimeout(() => nameInput.focus(), 100);
+        }
+
+        function hideAddSystemModal() {
+            document.getElementById('addSystemModal').style.display = 'none';
+            document.getElementById('newSystemName').value = '';
+        }
+
+        function addNewSystem() {
+            const name = document.getElementById('newSystemName').value.trim();
+            if (!name) {
+                showToast('请输入系统名称');
+                return;
+            }
+            
+            const key = createNewSystem(name);
+            hideAddSystemModal();
+            switchSystem(key);
+        }
+
+        // 添加按钮样式
+        const style = document.createElement('style');
+        style.textContent = `
+            .btn-secondary {
+                background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+                color: white;
+                border: none;
+                padding: 12px 25px;
+                border-radius: 20px;
+                cursor: pointer;
+                font-size: 1em;
+                font-weight: 600;
+                transition: all 0.3s ease;
+            }
+            
+            .btn-secondary:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 20px rgba(149, 165, 166, 0.3);
+            }
+        `;
+        document.head.appendChild(style);
+
+        // 键盘快捷键支持
+        document.addEventListener('keydown', function(e) {
+            // ESC关闭弹窗
+            if (e.key === 'Escape') {
+                hideEditSystemModal();
+                hideAddSystemModal();
+                hideClearHistoryModal();
+                hideResetDataModal();
+            }
+            
+            // Enter键处理
+            if (e.key === 'Enter') {
+                // 在特定输入框中按Enter可以快速创建系统
+                if (document.activeElement.id === 'quickSystemName') {
+                    quickAddSystem();
+                } else if (document.activeElement.id === 'newSystemName') {
+                    addNewSystem();
+                } else if (document.activeElement.id === 'editSystemName') {
+                    saveSystemName();
+                }
+            }
+        });
+
+        // 点击弹窗外部关闭
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

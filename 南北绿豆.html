@@ -1,0 +1,1668 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>感恩教师节 - 高二（1）班全体献上</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+            position: relative;
+            transition: background 1s ease;
+            background: linear-gradient(135deg, #f9f3e9 0%, #e6f0ff 100%);
+        }
+        
+        /* 背景容器 */
+        .background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            transition: background 1s ease;
+        }
+        
+        /* 装饰元素 */
+        .decoration {
+            position: absolute;
+            z-index: -1;
+            opacity: 0.6;
+        }
+        
+        .book {
+            top: 10%;
+            left: 5%;
+            font-size: 2.5rem;
+            color: #8b4513;
+            transform: rotate(-15deg);
+        }
+        
+        .apple {
+            bottom: 15%;
+            right: 7%;
+            font-size: 2.8rem;
+            color: #d64f2a;
+        }
+        
+        .pencil {
+            top: 40%;
+            right: 10%;
+            font-size: 2.2rem;
+            color: #4a90e2;
+            transform: rotate(45deg);
+        }
+        
+        .globe {
+            bottom: 20%;
+            left: 8%;
+            font-size: 2.5rem;
+            color: #6aae4c;
+        }
+        
+        .header {
+            text-align: center;
+            margin: 30px 0;
+            position: relative;
+            width: 100%;
+            padding: 0 20px;
+        }
+        
+        h1 {
+            color: #d64f2a;
+            font-size: 3rem;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+            display: inline-block;
+        }
+        
+        h1:after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 10%;
+            width: 80%;
+            height: 4px;
+            background: linear-gradient(to right, #ff9d00, #ffd700, #ff9d00);
+            border-radius: 2px;
+        }
+        
+        .subtitle {
+            font-size: 1.4rem;
+            color: #5a5a5a;
+            margin-top: 15px;
+        }
+        
+        .class-info {
+            background: linear-gradient(135deg, #4a90e2 0%, #77b3ff 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            display: inline-block;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            animation: pulse 2s infinite;
+        }
+        
+        .container {
+            max-width: 900px;
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 25px;
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 1; /* 确保内容在寄语下方，不被遮挡 */
+        }
+        
+        .teacher-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 30px;
+            width: 100%;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        
+        .teacher-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+        
+        .teacher-card:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, #4a90e2, #77b3ff);
+        }
+        
+        .teacher-name {
+            color: #4a90e2;
+            margin-bottom: 20px;
+            font-size: 2rem;
+            border-left: 4px solid #ffd700;
+            padding-left: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .teacher-subject {
+            font-size: 1.2rem;
+            color: #d64f2a;
+            margin-left: 15px;
+        }
+        
+        .blessing-content {
+            color: #555;
+            font-size: 1.1rem;
+            text-align: justify;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+        
+        .flower {
+            position: absolute;
+            font-size: 2rem;
+            opacity: 0.7;
+            z-index: -1;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: auto;
+            padding: 20px;
+            color: #777;
+            width: 100%;
+            border-top: 1px solid #eee;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .heart {
+            color: #ff4d4d;
+            display: inline-block;
+            animation: pulse 1.5s infinite;
+        }
+        
+        /* 飘落的花朵 */
+        .falling-flowers {
+            position: fixed;
+            top: -50px;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .falling-flower {
+            position: absolute;
+            font-size: 1.5rem;
+            opacity: 0.7;
+            animation: fall linear forwards;
+        }
+        
+        /* 时间信息 */
+        .time-info {
+            font-size: 1.2rem;
+            color: #5a5a5a;
+            margin-top: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            border-radius: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        /* 测试选项面板 */
+        .test-panel {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+            width: 250px;
+            transition: transform 0.3s ease;
+            transform: translateX(-220px);
+        }
+        
+        .test-panel:hover {
+            transform: translateX(0);
+        }
+        
+        .test-panel h3 {
+            color: #4a90e2;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .test-panel h3 i {
+            cursor: pointer;
+        }
+        
+        .test-select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            background: white;
+        }
+        
+        .test-button {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: none;
+            background: #4a90e2;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin-bottom: 10px;
+        }
+        
+        .test-button:hover {
+            background: #3a80d2;
+        }
+        
+        .auto-mode {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .auto-mode input {
+            margin-right: 5px;
+        }
+        
+        /* 签名区域 */
+        .signature {
+            margin-top: 30px;
+            text-align: right;
+            font-family: cursive;
+            font-size: 1.2rem;
+            color: #4a90e2;
+            padding: 0 20px;
+            opacity: 0;
+            transform: translateX(50px);
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* 学科特定背景 */
+        .chinese-bg {
+            background: linear-gradient(135deg, #f9e3e3 0%, #e6f0ff 100%);
+        }
+        
+        .geography-bg {
+            background: linear-gradient(135deg, #d4f1f9 0%, #e6f0ff 100%);
+        }
+        
+        .math-bg {
+            background: linear-gradient(135deg, #f9f3e9 0%, #e6f7ff 100%);
+        }
+        
+        .physics-bg {
+            background: linear-gradient(135deg, #f9f3e9 0%, #e6eeff 100%);
+        }
+        
+        .english-bg {
+            background: linear-gradient(135deg, #f9f3e9 0%, #ffe6e6 100%);
+        }
+        
+        .chemistry-bg {
+            background: linear-gradient(135deg, #f9f3e9 0%, #e6ffe6 100%);
+        }
+        
+        .default-bg {
+            background: linear-gradient(135deg, #f9f3e9 0%, #e6f0ff 100%);
+        }
+        
+        /* 寄语功能样式 - 重新设计 */
+        /* 添加寄语按钮 */
+        .add-message-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #d64f2a;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        .add-message-btn:hover {
+            transform: scale(1.1);
+            background: #c03c1e;
+        }
+        
+        /* 查看寄语按钮 */
+        .view-messages-btn {
+            position: fixed;
+            bottom: 85px;
+            right: 20px;
+            background: #4a90e2;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            color: white;
+            font-size: 1.5rem;
+        }
+        
+        .view-messages-btn:hover {
+            transform: scale(1.1);
+            background: #3a80d2;
+        }
+        
+        /* 寄语模态框 - 重新设计 */
+        .message-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .message-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.2rem;
+            color: #777;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        
+        .modal-close:hover {
+            color: #d64f2a;
+        }
+        
+        .modal-title {
+            font-size: 1.8rem;
+            color: #4a90e2;
+            margin-bottom: 20px;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .message-form .form-group {
+            margin-bottom: 18px;
+        }
+        
+        .message-form label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+        
+        .message-form select,
+        .message-form textarea,
+        .message-form input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 1.1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .message-form select:focus,
+        .message-form textarea:focus,
+        .message-form input:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+        }
+        
+        .message-form textarea {
+            min-height: 150px;
+            resize: vertical;
+            max-height: 250px;
+            font-size: 1.2rem; /* 增大字体 */
+            line-height: 1.6;
+        }
+        
+        .name-input {
+            display: block;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            border: none;
+            background: #4a90e2;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        
+        .submit-btn:hover {
+            background: #3a80d2;
+        }
+        
+        .message-limit {
+            font-size: 1rem;
+            color: #777;
+            margin-top: 8px;
+            text-align: right;
+        }
+        
+        .modal-alert {
+            color: #d64f2a;
+            text-align: center;
+            margin-top: 15px;
+            height: 20px;
+            font-size: 1rem;
+        }
+        
+        /* 寄语显示容器 */
+        .messages-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5; /* 确保寄语在内容上方，不被遮挡 */
+            overflow: hidden;
+        }
+        
+        /* 单个寄语样式 - 增大字体 */
+        .message-item {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 20px;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            max-width: 300px;
+            min-width: 220px;
+            word-wrap: break-word;
+            animation: messageFall linear forwards;
+            z-index: 5;
+            border: 2px solid rgba(74, 144, 226, 0.2);
+        }
+        
+        .message-content {
+            color: #333;
+            font-size: 1.2rem; /* 增大字体 */
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+        
+        .message-author {
+            color: #777;
+            font-size: 1rem;
+            text-align: right;
+            font-style: italic;
+        }
+        
+        /* 查看寄语模态框 */
+        .view-messages-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .view-messages-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .view-modal-content {
+            background: white;
+            width: 90%;
+            max-width: 800px;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .view-modal-title {
+            font-size: 1.8rem;
+            color: #4a90e2;
+            margin-bottom: 20px;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .teacher-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        
+        .teacher-tab {
+            padding: 10px 20px;
+            background: #f0f0f0;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        }
+        
+        .teacher-tab.active {
+            background: #4a90e2;
+            color: white;
+        }
+        
+        .messages-list {
+            margin-top: 20px;
+        }
+        
+        .message-item-view {
+            background: #f9f9f9;
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #4a90e2;
+        }
+        
+        .message-content-view {
+            font-size: 1.3rem; /* 增大字体 */
+            line-height: 1.6;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .message-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #777;
+            font-size: 1rem;
+        }
+        
+        .message-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .edit-btn, .delete-btn {
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.3s ease;
+        }
+        
+        .edit-btn {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .edit-btn:hover {
+            background: #e0a800;
+        }
+        
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .delete-btn:hover {
+            background: #c82333;
+        }
+        
+        .no-messages {
+            text-align: center;
+            padding: 30px;
+            color: #777;
+            font-size: 1.2rem;
+        }
+        
+        /* 动画效果 */
+        @keyframes fall {
+            to {
+                transform: translateY(105vh) rotate(360deg);
+            }
+        }
+        
+        @keyframes messageFall {
+            from {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            to {
+                transform: translateY(105vh);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+        }
+        
+        .decoration {
+            animation: float 7s ease-in-out infinite;
+        }
+        
+        .book {
+            animation-delay: 0.5s;
+        }
+        
+        .apple {
+            animation-delay: 1.5s;
+        }
+        
+        .pencil {
+            animation-delay: 2.5s;
+        }
+        
+        .globe {
+            animation-delay: 3.5s;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .teacher-name {
+                font-size: 1.6rem;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .teacher-subject {
+                margin-left: 0;
+                margin-top: 10px;
+            }
+            
+            .blessing-content {
+                font-size: 1rem;
+            }
+            
+            .decoration {
+                display: none;
+            }
+            
+            .test-panel {
+                top: 10px;
+                left: 10px;
+                width: 200px;
+                transform: translateX(-170px);
+            }
+            
+            .message-item {
+                max-width: 250px;
+                min-width: 180px;
+                padding: 12px 16px;
+            }
+            
+            .message-content {
+                font-size: 1.1rem;
+            }
+            
+            .view-modal-content {
+                padding: 15px;
+            }
+            
+            .teacher-tabs {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .teacher-tab {
+                width: 100%;
+                text-align: center;
+            }
+            
+            .message-content-view {
+                font-size: 1.1rem;
+            }
+            
+            .message-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .message-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景容器 -->
+    <div class="background-container" id="backgroundContainer"></div>
+    
+    <!-- 装饰元素 -->
+    <i class="decoration book fas fa-book"></i>
+    <i class="decoration apple fas fa-apple-alt"></i>
+    <i class="decoration pencil fas fa-pencil-alt"></i>
+    <i class="decoration globe fas fa-globe-americas"></i>
+    
+    <!-- 飘落的花朵 -->
+    <div class="falling-flowers" id="fallingFlowers"></div>
+    
+    <!-- 测试选项面板 -->
+    <div class="test-panel" id="testPanel">
+        <h3>
+            测试选项
+            <i class="fas fa-cog"></i>
+        </h3>
+        <select class="test-select" id="testSelect">
+            <option value="auto">自动模式 (按当前时间)</option>
+            <option value="0">语文老师 (7:40-8:25)</option>
+            <option value="1">地理老师 (8:30-9:15)</option>
+            <option value="2">数学老师 (9:20-10:05)</option>
+            <option value="3">物理老师 (10:20-11:05)</option>
+            <option value="4">英语老师 (11:10-11:55)</option>
+            <option value="5">化学老师 (14:40-15:25)</option>
+        </select>
+        <button class="test-button" id="testButton">应用测试</button>
+        <div class="auto-mode">
+            <input type="checkbox" id="autoMode" checked>
+            <label for="autoMode">自动更新</label>
+        </div>
+    </div>
+    
+    <!-- 寄语功能元素 -->
+    <!-- 添加寄语按钮 -->
+    <div class="add-message-btn" id="addMessageBtn">
+        <i class="fas fa-pen"></i>
+    </div>
+    
+    <!-- 查看寄语按钮 -->
+    <div class="view-messages-btn" id="viewMessagesBtn">
+        <i class="fas fa-eye"></i>
+    </div>
+    
+    <!-- 寄语模态框 -->
+    <div class="message-modal" id="messageModal">
+        <div class="modal-content">
+            <div class="modal-close" id="modalClose">
+                <i class="fas fa-times"></i>
+            </div>
+            <h3 class="modal-title">给老师写寄语</h3>
+            <div class="modal-alert" id="modalAlert"></div>
+            <form class="message-form" id="messageForm">
+                <div class="form-group">
+                    <label for="teacherSelect">选择老师</label>
+                    <select id="teacherSelect" required>
+                        <option value="0">Z~DoubleD (语文)</option>
+                        <option value="1">方老师 (地理)</option>
+                        <option value="2">余老师 (数学)</option>
+                        <option value="3">陈老师 (物理)</option>
+                        <option value="4">Madam (英语)</option>
+                        <option value="5">吕老师 (化学)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="messageContent">寄语内容 (最多200字)</label>
+                    <textarea id="messageContent" placeholder="请输入对老师的祝福..." required></textarea>
+                    <div class="message-limit" id="messageLimit">0/200</div>
+                </div>
+                <div class="form-group name-input">
+                    <label for="authorName">你的名字</label>
+                    <input type="text" id="authorName" placeholder="请输入你的名字或昵称" required>
+                </div>
+                <button type="submit" class="submit-btn">提交寄语</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- 查看寄语模态框 -->
+    <div class="view-messages-modal" id="viewMessagesModal">
+        <div class="view-modal-content">
+            <div class="modal-close" id="viewModalClose">
+                <i class="fas fa-times"></i>
+            </div>
+            <h3 class="view-modal-title">查看与编辑寄语</h3>
+            
+            <div class="teacher-tabs" id="teacherTabs">
+                <div class="teacher-tab active" data-teacher="0">语文老师</div>
+                <div class="teacher-tab" data-teacher="1">地理老师</div>
+                <div class="teacher-tab" data-teacher="2">数学老师</div>
+                <div class="teacher-tab" data-teacher="3">物理老师</div>
+                <div class="teacher-tab" data-teacher="4">英语老师</div>
+                <div class="teacher-tab" data-teacher="5">化学老师</div>
+            </div>
+            
+            <div class="messages-list" id="messagesList">
+                <!-- 寄语列表将在这里动态生成 -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- 寄语显示容器 -->
+    <div class="messages-container" id="messagesContainer"></div>
+    
+    <div class="header">
+        <h1>感恩教师节</h1>
+        <p class="subtitle">桃李满天下，恩情似海深</p>
+        <p class="subtitle">祝老师节日快乐!</p>
+        <div class="class-info">
+            <p>高二（1）班全体学生献上</p>
+        </div>
+        <div class="time-info" id="timeInfo"></div>
+    </div>
+    
+    <div class="container">
+        <div class="teacher-card" id="teacherCard">
+            <div class="teacher-name">
+                <span id="teacherName">老师</span>
+                <span class="teacher-subject" id="teacherSubject">学科</span>
+            </div>
+            <div class="blessing-content" id="blessingContent">
+                祝福内容加载中...
+            </div>
+        </div>
+    </div>
+    
+    <div class="signature">
+        <p>高二（1）班全体同学</p>
+        <p>2025年教师节</p>
+    </div>
+    
+    <div class="footer">
+        <p>Made with <span class="heart">❤</span> for our teachers | 教师节快乐</p>
+        <p>© 2025 高二（1）班感恩教师节</p>
+    </div>
+
+    <script>
+        // 教师信息数据
+        const teachersData = [
+            {
+                time: "7:40-8:25",
+                name: "Z~DoubleD",
+                subject: "语文",
+                bgClass: "chinese-bg",
+                blessing: "笔墨为舟，渡千年文海；诗书作帆，引万里云程。您在平仄间雕刻时光，于章句中传递薪火。高二征程，您以温润之语化育桃李，让古老的文字在年轻的心跳中重生。致敬语文老师——您是文明之河的摆渡人，亦是岁月深处的点灯者。"
+            },
+            {
+                time: "8:30-9:15",
+                name: "方老师",
+                subject: "地理",
+                bgClass: "geography-bg",
+                blessing: "一指经纬揽风云变幻，两袖粉尘绘山河峥嵘。您让季风穿越黑板，教洋流在课桌间回转。高二地理课堂上，您用等高线标注成长海拔，以等温线衡量求知热忱。致敬地理老师——您是用脚步丈量课本、用胸怀容纳地球的当代徐霞客！"
+            },
+            {
+                time: "9:20-10:05",
+                name: "余老师",
+                subject: "数学",
+                bgClass: "math-bg",
+                blessing: "公式为尺，丈量天地奥秘；推演为舟，横渡逻辑星河。您以理性为刃，劈开混沌之幕；用智慧作钥，解开宇宙之锁。数学丛林里，您为我们标注路径，让抽象符号绽放出思想之花。致敬数学老师——您是坐标系中永不偏移的灯塔！"
+            },
+            {
+                time: "10:20-11:05",
+                name: "陈老师",
+                subject: "物理",
+                bgClass: "physics-bg",
+                blessing: "实验台上见星辰运转，粉笔屑中藏万物之理。您用磁场勾勒宇宙脉络，以光速追赶真理脚步。高二物理如险峰攀登，您总是先踏出坚实的足迹，再转身为我们点亮探照灯。致敬物理老师——您是时空尺度上丈量理想的追光者！"
+            },
+            {
+                time: "11:10-11:55",
+                name: "Madam",
+                subject: "英语",
+                bgClass: "english-bg",
+                blessing: "With twenty-six letters, you build a bridge connecting voices across oceans; with thousands of words, you craft a boat carrying dialogues of civilizations. You help young hearts listen to the world. Facing the challenges of language learning in senior high, You guide us through barriers with patience as your shield and passion as your guide. Salute to you, Madam—a cultural envoy weaving global connections with the power of voice!"
+            },
+            {
+                time: "14:40-15:25",
+                name: "吕老师",
+                subject: "化学",
+                bgClass: "chemistry-bg",
+                blessing: "试管中沉淀智慧结晶，方程式里书写元素诗篇。您让电子跳起圆舞曲，教原子碰撞出彩虹。高二的化学微宇宙中，您以严谨为反应条件，用热情作催化试剂，唤醒我们对物质世界的好奇。致敬化学老师——您是改变知识熵值的能量之源！"
+            }
+        ];
+
+        // 全局变量
+        let isAutoMode = true;
+        let currentTeacherIndex = null;
+        let updateInterval = null;
+        // 寄语相关变量
+        let messageTimer = null; // 寄语播放定时器
+        const MAX_MESSAGE_COUNT = 40; // 每个老师最多寄语数
+        const MAX_MESSAGE_LENGTH = 200; // 单条寄语最多字数
+        let currentEditId = null; // 当前编辑的寄语ID
+
+        // 初始化localStorage（寄语数据）
+        function initMessageStorage() {
+            const storedMessages = localStorage.getItem('teachersMessages');
+            if (!storedMessages) {
+                // 初始化空的寄语数据结构
+                const defaultMessages = {
+                    0: [], // 语文老师
+                    1: [], // 地理老师
+                    2: [], // 数学老师
+                    3: [], // 物理老师
+                    4: [], // 英语老师
+                    5: []  // 化学老师
+                };
+                localStorage.setItem('teachersMessages', JSON.stringify(defaultMessages));
+                return defaultMessages;
+            }
+            return JSON.parse(storedMessages);
+        }
+
+        // 生成唯一ID
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        // 创建持续飘落的花朵
+        function createFallingFlowers() {
+            const flowers = ['🌸', '🌺', '🌼', '🌹', '🌷', '💮'];
+            const fallingFlowers = document.getElementById('fallingFlowers');
+            
+            // 先创建一些花朵
+            for (let i = 0; i < 15; i++) {
+                createSingleFlower(flowers, fallingFlowers, true);
+            }
+            
+            // 设置定时器持续创建花朵
+            setInterval(() => {
+                createSingleFlower(flowers, fallingFlowers, false);
+            }, 800);
+        }
+        
+        // 创建单朵花
+        function createSingleFlower(flowers, container, randomDelay) {
+            const flower = document.createElement('div');
+            flower.classList.add('falling-flower');
+            flower.innerText = flowers[Math.floor(Math.random() * flowers.length)];
+            
+            // 随机位置和动画时间
+            const left = Math.random() * 100;
+            const animationDuration = 10 + Math.random() * 20;
+            const delay = randomDelay ? Math.random() * 5 : 0;
+            
+            flower.style.left = `${left}vw`;
+            flower.style.animationDuration = `${animationDuration}s`;
+            flower.style.animationDelay = `${delay}s`;
+            
+            // 动画结束后移除元素
+            flower.addEventListener('animationend', () => {
+                flower.remove();
+            });
+            
+            container.appendChild(flower);
+        }
+        
+        // 获取当前时间对应的老师
+        function getCurrentTeacher() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const currentTime = hours * 60 + minutes;
+            
+            // 定义时间段对应的分钟数
+            const timeSlots = [
+                { start: 7*60+40, end: 8*60+25, index: 0 },
+                { start: 8*60+30, end: 9*60+15, index: 1 },
+                { start: 9*60+20, end: 10*60+5, index: 2 },
+                { start: 10*60+20, end: 11*60+5, index: 3 },
+                { start: 11*60+10, end: 11*60+55, index: 4 },
+                { start: 14*60+40, end: 15*60+25, index: 5 }
+            ];
+            
+            for (const slot of timeSlots) {
+                if (currentTime >= slot.start && currentTime <= slot.end) {
+                    return { ...teachersData[slot.index], index: slot.index };
+                }
+            }
+            
+            // 如果没有匹配的时间段，返回默认老师
+            return {
+                name: "敬爱的老师",
+                subject: "",
+                bgClass: "default-bg",
+                blessing: "感谢您用生命的火炬照亮了我们前进的道路，感谢您用无私的奉献培育了一代又一代学子。在这特殊的日子里，高二（1）班全体学生祝您教师节快乐！",
+                time: "全天",
+                index: -1
+            };
+        }
+        
+        // 更新页面内容
+        function updatePageContent(teacherIndex = null) {
+            let teacher;
+            let timeText;
+            
+            if (teacherIndex !== null && !isAutoMode) {
+                // 手动选择模式
+                teacher = { ...teachersData[teacherIndex], index: teacherIndex };
+                timeText = `测试模式: ${formatTime(new Date())}`;
+                currentTeacherIndex = teacherIndex;
+            } else {
+                // 自动模式
+                teacher = getCurrentTeacher();
+                timeText = `当前时间: ${formatTime(new Date())}`;
+                currentTeacherIndex = teacher.index;
+                
+                // 更新选择框以反映当前老师
+                document.getElementById('testSelect').value = teacher.index !== -1 ? teacher.index : 'auto';
+            }
+            
+            // 更新老师信息
+            document.getElementById('teacherName').textContent = teacher.name;
+            document.getElementById('teacherSubject').textContent = teacher.subject + (teacher.subject ? "老师" : "");
+            document.getElementById('blessingContent').textContent = teacher.blessing;
+            
+            // 更新时间信息
+            document.getElementById('timeInfo').textContent = timeText;
+            
+            // 设置背景
+            document.body.className = teacher.bgClass;
+            
+            // 更新寄语播放（切换老师时重启寄语）
+            updateMessagePlayback();
+        }
+        
+        // 格式化时间
+        function formatTime(date) {
+            const hours = date.getHours().toString().padStart(2, '0');
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+        
+        // 卡片动画效果
+        function animateCard() {
+            const card = document.getElementById('teacherCard');
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+                card.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+            }, 300);
+        }
+        
+        // 签名动画
+        function animateSignature() {
+            const signature = document.querySelector('.signature');
+            setTimeout(() => {
+                signature.style.opacity = '1';
+                signature.style.transform = 'translateX(0)';
+                signature.style.transition = 'opacity 1s ease, transform 1s ease';
+            }, 1500);
+        }
+        
+        // 设置测试选项
+        function setupTestOptions() {
+            const testSelect = document.getElementById('testSelect');
+            const testButton = document.getElementById('testButton');
+            const autoModeCheckbox = document.getElementById('autoMode');
+            
+            // 应用测试按钮点击事件
+            testButton.addEventListener('click', function() {
+                const selectedValue = testSelect.value;
+                
+                if (selectedValue === 'auto') {
+                    isAutoMode = true;
+                    updatePageContent();
+                    setupAutoUpdate();
+                } else {
+                    isAutoMode = false;
+                    const teacherIndex = parseInt(selectedValue);
+                    updatePageContent(teacherIndex);
+                    clearInterval(updateInterval);
+                }
+            });
+            
+            // 自动模式复选框变化事件
+            autoModeCheckbox.addEventListener('change', function() {
+                isAutoMode = this.checked;
+                
+                if (isAutoMode) {
+                    updatePageContent();
+                    setupAutoUpdate();
+                } else {
+                    clearInterval(updateInterval);
+                }
+            });
+        }
+        
+        // 设置自动更新
+        function setupAutoUpdate() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+            
+            if (isAutoMode) {
+                updateInterval = setInterval(() => {
+                    updatePageContent();
+                }, 60000);
+            }
+        }
+
+        // ---------------------- 寄语功能核心逻辑 ----------------------
+        // 初始化寄语功能
+        function setupMessageFeature() {
+            // 初始化存储
+            initMessageStorage();
+            
+            // 绑定模态框事件
+            setupModalEvents();
+            
+            // 绑定表单事件
+            setupFormEvents();
+            
+            // 绑定查看寄语事件
+            setupViewMessagesEvents();
+            
+            // 初始启动寄语播放
+            updateMessagePlayback();
+        }
+        
+        // 绑定模态框显示/隐藏事件
+        function setupModalEvents() {
+            const addMessageBtn = document.getElementById('addMessageBtn');
+            const messageModal = document.getElementById('messageModal');
+            const modalClose = document.getElementById('modalClose');
+            const messageForm = document.getElementById('messageForm');
+            const viewMessagesBtn = document.getElementById('viewMessagesBtn');
+            const viewMessagesModal = document.getElementById('viewMessagesModal');
+            const viewModalClose = document.getElementById('viewModalClose');
+            
+            // 显示添加寄语模态框
+            addMessageBtn.addEventListener('click', () => {
+                messageModal.classList.add('active');
+                // 重置表单和提示
+                messageForm.reset();
+                document.getElementById('modalAlert').textContent = '';
+                document.getElementById('messageLimit').textContent = '0/200';
+                currentEditId = null;
+            });
+            
+            // 显示查看寄语模态框
+            viewMessagesBtn.addEventListener('click', () => {
+                viewMessagesModal.classList.add('active');
+                loadMessagesForTeacher(0); // 默认显示语文老师的寄语
+            });
+            
+            // 隐藏模态框
+            function hideModal(modal) {
+                modal.classList.remove('active');
+            }
+            
+            modalClose.addEventListener('click', () => hideModal(messageModal));
+            viewModalClose.addEventListener('click', () => hideModal(viewMessagesModal));
+            
+            // 点击模态框外部关闭
+            messageModal.addEventListener('click', (e) => {
+                if (e.target === messageModal) {
+                    hideModal(messageModal);
+                }
+            });
+            
+            viewMessagesModal.addEventListener('click', (e) => {
+                if (e.target === viewMessagesModal) {
+                    hideModal(viewMessagesModal);
+                }
+            });
+        }
+        
+        // 绑定查看寄语相关事件
+        function setupViewMessagesEvents() {
+            const teacherTabs = document.getElementById('teacherTabs');
+            
+            // 老师标签切换事件
+            teacherTabs.addEventListener('click', (e) => {
+                if (e.target.classList.contains('teacher-tab')) {
+                    // 移除所有active类
+                    document.querySelectorAll('.teacher-tab').forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    
+                    // 添加active类到当前标签
+                    e.target.classList.add('active');
+                    
+                    // 加载对应老师的寄语
+                    const teacherIndex = parseInt(e.target.dataset.teacher);
+                    loadMessagesForTeacher(teacherIndex);
+                }
+            });
+        }
+        
+        // 加载指定老师的寄语
+        function loadMessagesForTeacher(teacherIndex) {
+            const messagesList = document.getElementById('messagesList');
+            const messagesData = initMessageStorage();
+            const teacherMessages = messagesData[teacherIndex];
+            
+            // 清空当前列表
+            messagesList.innerHTML = '';
+            
+            // 如果没有寄语
+            if (teacherMessages.length === 0) {
+                messagesList.innerHTML = `
+                    <div class="no-messages">
+                        <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                        <p>暂无寄语，成为第一个给老师留言的人吧！</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 按时间倒序排列（最新的在前面）
+            teacherMessages.sort((a, b) => b.time - a.time);
+            
+            // 添加寄语到列表
+            teacherMessages.forEach((message, index) => {
+                const messageItem = document.createElement('div');
+                messageItem.classList.add('message-item-view');
+                messageItem.dataset.id = message.id;
+                
+                // 格式化时间
+                const date = new Date(message.time);
+                const timeString = `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+                
+                messageItem.innerHTML = `
+                    <div class="message-content-view">${message.content}</div>
+                    <div class="message-meta">
+                        <span>${message.author} • ${timeString}</span>
+                        <div class="message-actions">
+                            <button class="edit-btn" data-index="${teacherIndex}" data-id="${message.id}">
+                                <i class="fas fa-edit"></i> 编辑
+                            </button>
+                            <button class="delete-btn" data-index="${teacherIndex}" data-id="${message.id}">
+                                <i class="fas fa-trash"></i> 删除
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                messagesList.appendChild(messageItem);
+            });
+            
+            // 绑定编辑和删除按钮事件
+            bindEditDeleteEvents();
+        }
+        
+        // 绑定编辑和删除按钮事件
+        function bindEditDeleteEvents() {
+            // 编辑按钮
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const teacherIndex = this.dataset.index;
+                    const messageId = this.dataset.id;
+                    
+                    editMessage(teacherIndex, messageId);
+                });
+            });
+            
+            // 删除按钮
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const teacherIndex = this.dataset.index;
+                    const messageId = this.dataset.id;
+                    
+                    deleteMessage(teacherIndex, messageId);
+                });
+            });
+        }
+        
+        // 编辑寄语
+        function editMessage(teacherIndex, messageId) {
+            const messagesData = initMessageStorage();
+            const teacherMessages = messagesData[teacherIndex];
+            const message = teacherMessages.find(m => m.id === messageId);
+            
+            if (!message) return;
+            
+            // 填充表单
+            document.getElementById('teacherSelect').value = teacherIndex;
+            document.getElementById('messageContent').value = message.content;
+            document.getElementById('authorName').value = message.author;
+            document.getElementById('messageLimit').textContent = `${message.content.length}/${MAX_MESSAGE_LENGTH}`;
+            
+            // 设置当前编辑ID
+            currentEditId = messageId;
+            
+            // 显示模态框
+            document.getElementById('viewMessagesModal').classList.remove('active');
+            document.getElementById('messageModal').classList.add('active');
+            
+            // 修改标题和按钮文字
+            document.querySelector('.modal-title').textContent = '编辑寄语';
+            document.querySelector('.submit-btn').textContent = '更新寄语';
+        }
+        
+        // 删除寄语
+        function deleteMessage(teacherIndex, messageId) {
+            if (!confirm('确定要删除这条寄语吗？此操作不可恢复。')) return;
+            
+            const messagesData = initMessageStorage();
+            const teacherMessages = messagesData[teacherIndex];
+            
+            // 过滤掉要删除的寄语
+            messagesData[teacherIndex] = teacherMessages.filter(m => m.id !== messageId);
+            
+            // 保存回localStorage
+            localStorage.setItem('teachersMessages', JSON.stringify(messagesData));
+            
+            // 重新加载列表
+            loadMessagesForTeacher(teacherIndex);
+            
+            // 如果当前正在显示这个老师的寄语，更新播放
+            if (currentTeacherIndex === parseInt(teacherIndex)) {
+                updateMessagePlayback();
+            }
+        }
+        
+        // 绑定表单提交和字数统计事件
+        function setupFormEvents() {
+            const messageContent = document.getElementById('messageContent');
+            const messageLimit = document.getElementById('messageLimit');
+            const messageForm = document.getElementById('messageForm');
+            const modalAlert = document.getElementById('modalAlert');
+            
+            // 字数统计
+            messageContent.addEventListener('input', () => {
+                const length = messageContent.value.length;
+                messageLimit.textContent = `${length}/${MAX_MESSAGE_LENGTH}`;
+                
+                // 超过字数时提示
+                if (length > MAX_MESSAGE_LENGTH) {
+                    messageLimit.style.color = '#d64f2a';
+                    messageContent.value = messageContent.value.substring(0, MAX_MESSAGE_LENGTH);
+                    messageLimit.textContent = `${MAX_MESSAGE_LENGTH}/${MAX_MESSAGE_LENGTH}`;
+                } else {
+                    messageLimit.style.color = '#777';
+                }
+            });
+            
+            // 表单提交
+            messageForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                // 获取表单数据
+                const teacherIndex = document.getElementById('teacherSelect').value;
+                const content = messageContent.value.trim();
+                const authorName = document.getElementById('authorName').value.trim();
+                
+                // 验证内容
+                if (!content) {
+                    modalAlert.textContent = '寄语内容不能为空';
+                    return;
+                }
+                
+                if (content.length > MAX_MESSAGE_LENGTH) {
+                    modalAlert.textContent = `寄语内容不能超过${MAX_MESSAGE_LENGTH}字`;
+                    return;
+                }
+                
+                if (!authorName) {
+                    modalAlert.textContent = '请填写你的名字';
+                    return;
+                }
+                
+                // 获取存储的寄语
+                const messagesData = initMessageStorage();
+                const teacherMessages = messagesData[teacherIndex];
+                
+                if (currentEditId) {
+                    // 编辑现有寄语
+                    const messageIndex = teacherMessages.findIndex(m => m.id === currentEditId);
+                    if (messageIndex !== -1) {
+                        teacherMessages[messageIndex].content = content;
+                        teacherMessages[messageIndex].author = authorName;
+                        teacherMessages[messageIndex].time = new Date().getTime();
+                        
+                        // 保存回localStorage
+                        localStorage.setItem('teachersMessages', JSON.stringify(messagesData));
+                        
+                        // 提示成功并关闭模态框
+                        modalAlert.textContent = '寄语更新成功！';
+                        modalAlert.style.color = '#6aae4c';
+                        
+                        setTimeout(() => {
+                            document.getElementById('messageModal').classList.remove('active');
+                            // 如果当前显示的是该老师，立即更新寄语播放
+                            if (currentTeacherIndex === parseInt(teacherIndex)) {
+                                updateMessagePlayback();
+                            }
+                        }, 1500);
+                    }
+                } else {
+                    // 添加新寄语
+                    // 验证数量上限
+                    if (teacherMessages.length >= MAX_MESSAGE_COUNT) {
+                        const teacher = teachersData[teacherIndex];
+                        modalAlert.textContent = `${teacher.name}的寄语已达上限（${MAX_MESSAGE_COUNT}条），感谢你的心意！`;
+                        return;
+                    }
+                    
+                    // 构造寄语对象
+                    const newMessage = {
+                        id: generateId(),
+                        content: content,
+                        author: authorName,
+                        time: new Date().getTime() // 时间戳，用于排序
+                    };
+                    
+                    // 添加到数组并保存
+                    teacherMessages.push(newMessage);
+                    localStorage.setItem('teachersMessages', JSON.stringify(messagesData));
+                    
+                    // 提示成功并关闭模态框
+                    modalAlert.textContent = '寄语提交成功！';
+                    modalAlert.style.color = '#6aae4c';
+                    
+                    setTimeout(() => {
+                        document.getElementById('messageModal').classList.remove('active');
+                        // 如果当前显示的是该老师，立即更新寄语播放
+                        if (currentTeacherIndex === parseInt(teacherIndex)) {
+                            updateMessagePlayback();
+                        }
+                    }, 1500);
+                }
+            });
+        }
+        
+        // 更新寄语播放（切换老师时调用）
+        function updateMessagePlayback() {
+            // 清除之前的定时器和所有寄语
+            clearMessageTimer();
+            clearAllMessages();
+            
+            // 如果当前没有选中老师（全天模式），不播放
+            if (currentTeacherIndex === -1 || currentTeacherIndex === null) {
+                return;
+            }
+            
+            // 获取当前老师的寄语
+            const messagesData = initMessageStorage();
+            const teacherMessages = messagesData[currentTeacherIndex];
+            
+            // 没有寄语时不播放
+            if (teacherMessages.length === 0) {
+                return;
+            }
+            
+            // 启动寄语播放定时器（3-5秒随机间隔）
+            const startDelay = Math.random() * 2000 + 1000; // 初始延迟1-3秒
+            setTimeout(() => {
+                playNextMessage(teacherMessages);
+                messageTimer = setInterval(() => {
+                    playNextMessage(teacherMessages);
+                }, Math.random() * 2000 + 3000); // 3-5秒随机间隔
+            }, startDelay);
+        }
+        
+        // 播放下一条随机寄语
+        function playNextMessage(teacherMessages) {
+            // 随机选择一条寄语
+            const randomIndex = Math.floor(Math.random() * teacherMessages.length);
+            const message = teacherMessages[randomIndex];
+            
+            // 创建寄语元素
+            createMessageElement(message);
+        }
+        
+        // 创建单个寄语元素并添加动画
+        function createMessageElement(message) {
+            const container = document.getElementById('messagesContainer');
+            const messageItem = document.createElement('div');
+            messageItem.classList.add('message-item');
+            
+            // 设置内容
+            messageItem.innerHTML = `
+                <div class="message-content">${message.content}</div>
+                <div class="message-author">—— ${message.author}</div>
+            `;
+            
+            // 随机位置（左右10%-90%，避免超出屏幕）
+            const left = Math.random() * 80 + 10; // 10% ~ 90%
+            messageItem.style.left = `${left}%`;
+            
+            // 随机动画时长（5-8秒，确保流畅）
+            const animationDuration = Math.random() * 3000 + 5000; // 5-8秒
+            messageItem.style.animationDuration = `${animationDuration}ms`;
+            
+            // 添加到容器
+            container.appendChild(messageItem);
+            
+            // 动画结束后移除
+            setTimeout(() => {
+                messageItem.style.opacity = '0';
+                setTimeout(() => {
+                    messageItem.remove();
+                }, 500);
+            }, animationDuration - 500); // 动画结束前0.5秒开始透明
+        }
+        
+        // 清除寄语定时器
+        function clearMessageTimer() {
+            if (messageTimer) {
+                clearInterval(messageTimer);
+                messageTimer = null;
+            }
+        }
+        
+        // 清除所有显示的寄语
+        function clearAllMessages() {
+            const container = document.getElementById('messagesContainer');
+            container.innerHTML = '';
+        }
+        // ---------------------- 寄语功能结束 ----------------------
+        
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            createFallingFlowers();
+            updatePageContent();
+            animateCard();
+            animateSignature();
+            setupTestOptions();
+            setupAutoUpdate();
+            // 初始化寄语功能
+            setupMessageFeature();
+        });
+    </script>
+</body>
+</html>

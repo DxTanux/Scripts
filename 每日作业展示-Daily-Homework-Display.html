@@ -1,0 +1,2017 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每日作业展示 - Daily Homework Display</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+        
+        .subject-color-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .homework-card {
+            border-left: 4px solid;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .notification {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* 面板放大效果 - 真正全屏 */
+        .panel-expanded {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            max-width: none !important;
+            max-height: none !important;
+            z-index: 9999 !important;
+            margin: 0 !important;
+            border-radius: 0 !important;
+            overflow: hidden !important;
+        }
+        
+        .panel-expanded .panel-header {
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+            padding: 1rem 2rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .panel-expanded .panel-content {
+            max-height: calc(100vh - 80px) !important;
+            padding: 2rem !important;
+            overflow-y: auto !important;
+        }
+        
+        /* 双列布局容器 */
+        .homework-columns {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .homework-columns.dual-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            align-items: start;
+        }
+        
+        /* 列容器 */
+        .column-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        /* 字体大小类 */
+        .text-size-sm { font-size: 0.875rem; }
+        .text-size-base { font-size: 1rem; }
+        .text-size-lg { font-size: 1.25rem; }
+        .text-size-xl { font-size: 1.5rem; }
+        .text-size-2xl { font-size: 1.875rem; }
+        .text-size-3xl { font-size: 2.25rem; }
+        
+        /* 滚动相关样式 */
+        .scrolling-active {
+            animation: scrollHighlight 2s ease-in-out;
+        }
+        
+        @keyframes scrollHighlight {
+            0%, 100% { background-color: white; }
+            50% { background-color: #fef3c7; }
+        }
+        
+        .scroll-indicator {
+            transition: all 0.3s ease;
+        }
+        
+        .scroll-indicator.active {
+            color: #10b981;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* 作业块高亮 */
+        .homework-highlight {
+            background: linear-gradient(to right, #fef3c7, #ffffff) !important;
+        }
+        
+        /* 隐藏滚动条但保留功能 */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* 打印样式 */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            .panel-expanded {
+                position: static;
+                overflow: visible;
+            }
+        }
+        
+        /* 倒计时进度条 */
+        .countdown-progress {
+            transition: width 1s linear;
+        }
+        
+        /* 全屏时的背景遮罩 */
+        .fullscreen-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 9998;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .fullscreen-overlay.active {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- 全屏遮罩层 -->
+    <div id="fullscreenOverlay" class="fullscreen-overlay" onclick="toggleFullscreen()"></div>
+
+    <!-- 顶部导航栏 -->
+    <nav class="gradient-bg text-white shadow-lg no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-chalkboard-teacher text-2xl"></i>
+                    <h1 class="text-xl font-bold">每日作业展示系统</h1>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button onclick="showTodayPanel()" class="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition text-sm">
+                        <i class="fas fa-calendar-day mr-2"></i>今天
+                    </button>
+                    <button onclick="exportToTXT()" class="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition text-sm">
+                        <i class="fas fa-file-export mr-2"></i>导出 TXT
+                    </button>
+                    <button onclick="document.getElementById('importFile').click()" class="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition text-sm">
+                        <i class="fas fa-file-import mr-2"></i>导入 TXT
+                    </button>
+                    <input type="file" id="importFile" accept=".txt" onchange="importFromTXT(event)" class="hidden">
+                    <button onclick="window.print()" class="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition text-sm">
+                        <i class="fas fa-print mr-2"></i>打印
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- 日期导航 -->
+        <div class="bg-white rounded-xl shadow-md p-4 mb-6 no-print">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                <div class="flex items-center space-x-3">
+                    <button onclick="changeDate(-1)" class="p-2 hover:bg-gray-100 rounded-lg transition">
+                        <i class="fas fa-chevron-left text-gray-600"></i>
+                    </button>
+                    <input type="date" id="currentDate" onchange="loadPanelByDate(this.value)" 
+                           class="text-xl font-semibold text-gray-800 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    <button onclick="changeDate(1)" class="p-2 hover:bg-gray-100 rounded-lg transition">
+                        <i class="fas fa-chevron-right text-gray-600"></i>
+                    </button>
+                </div>
+                <button onclick="showAddHomeworkModal()" class="gradient-bg text-white px-6 py-2 rounded-lg hover:opacity-90 transition shadow-lg">
+                    <i class="fas fa-plus mr-2"></i>登记作业
+                </button>
+            </div>
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6" id="mainGrid">
+            <!-- 左侧：科目管理 -->
+            <div class="lg:col-span-1 no-print" id="subjectPanel">
+                <div class="bg-white rounded-xl shadow-md p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-semibold text-gray-800">
+                            <i class="fas fa-book mr-2 text-purple-600"></i>科目管理
+                        </h2>
+                        <button onclick="showAddSubjectModal()" class="text-purple-600 hover:text-purple-800 transition p-1">
+                            <i class="fas fa-plus-circle"></i>
+                        </button>
+                    </div>
+                    <div id="subjectList" class="space-y-2 max-h-64 overflow-y-auto">
+                        <!-- 科目列表将在这里动态生成 -->
+                    </div>
+                </div>
+
+                <!-- 统计信息 -->
+                <div class="bg-white rounded-xl shadow-md p-5 mt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-info-circle mr-2 text-blue-600"></i>今日概况
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">作业总数</span>
+                            <span id="totalHomeworks" class="font-bold text-gray-800">0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">科目数量</span>
+                            <span id="subjectCount" class="font-bold text-gray-800">0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">最后更新</span>
+                            <span id="lastUpdate" class="font-bold text-gray-800 text-sm">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 快捷操作 -->
+                <div class="bg-white rounded-xl shadow-md p-5 mt-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-bolt mr-2 text-yellow-600"></i>快捷操作
+                    </h3>
+                    <div class="space-y-2">
+                        <button onclick="toggleFullscreen()" class="w-full px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition text-sm text-left">
+                            <i class="fas fa-expand mr-2" id="fullscreenIcon"></i><span id="fullscreenText">全屏展示模式</span>
+                        </button>
+                        <button onclick="toggleAutoScroll()" id="autoScrollBtn" class="w-full px-4 py-2 bg-green-50 hover:bg-green-100 text-green-600 rounded-lg transition text-sm text-left">
+                            <i class="fas fa-play mr-2"></i><span id="autoScrollText">开启自动滚动</span>
+                        </button>
+                        <button onclick="showScrollSettings()" class="w-full px-4 py-2 bg-purple-50 hover:bg-purple-100 text-purple-600 rounded-lg transition text-sm text-left">
+                            <i class="fas fa-cog mr-2"></i>滚动设置
+                        </button>
+                        <button onclick="toggleDualColumn()" id="dualColumnBtn" class="w-full px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg transition text-sm text-left">
+                            <i class="fas fa-columns mr-2"></i><span id="dualColumnText">智能双列：关</span>
+                        </button>
+                        <button onclick="clearTodayHomeworks()" class="w-full px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition text-sm text-left">
+                            <i class="fas fa-trash-alt mr-2"></i>清空今日作业
+                        </button>
+                        <button onclick="copyTodayHomeworks()" class="w-full px-4 py-2 bg-cyan-50 hover:bg-cyan-100 text-cyan-600 rounded-lg transition text-sm text-left">
+                            <i class="fas fa-copy mr-2"></i>复制今日作业
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧：作业列表 -->
+            <div class="lg:col-span-3" id="homeworkPanelContainer">
+                <div class="bg-white rounded-xl shadow-md" id="homeworkPanel">
+                    <!-- 面板头部 -->
+                    <div class="panel-header p-5 border-b border-gray-200 flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <h2 class="text-xl font-semibold text-gray-800">
+                                <i class="fas fa-clipboard-list mr-2 text-green-600"></i>作业列表
+                            </h2>
+                            <span id="panelDate" class="text-gray-500"></span>
+                        </div>
+                        <div class="flex items-center space-x-3 no-print">
+                            <!-- 滚动状态指示器 -->
+                            <div class="flex items-center space-x-2 px-3 py-1.5 bg-gray-100 rounded-lg">
+                                <i id="scrollIndicator" class="fas fa-circle scroll-indicator text-gray-400 text-xs"></i>
+                                <span id="scrollStatus" class="text-xs text-gray-600">滚动已停止</span>
+                            </div>
+                            <button onclick="toggleAutoScroll()" id="headerAutoScrollBtn" class="px-4 py-2 gradient-bg text-white rounded-lg hover:opacity-90 transition text-sm">
+                                <i class="fas fa-play mr-1"></i><span id="headerScrollText">自动滚动</span>
+                            </button>
+                            <button onclick="toggleDualColumn()" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition text-sm" title="切换智能双列">
+                                <i class="fas fa-columns"></i>
+                            </button>
+                            <button onclick="toggleFullscreen()" id="expandBtn" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition text-sm" title="全屏展示">
+                                <i class="fas fa-expand" id="expandBtnIcon"></i>
+                            </button>
+                            <button onclick="sortHomeworks()" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition text-sm" title="排序">
+                                <i class="fas fa-sort"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 滚动进度条 -->
+                    <div id="scrollProgressBar" class="h-1 bg-gray-200 hidden">
+                        <div id="scrollProgressFill" class="h-full gradient-bg countdown-progress" style="width: 0%"></div>
+                    </div>
+                    
+                    <!-- 面板内容 -->
+                    <div class="panel-content" id="homeworkListContainer" style="max-height: 70vh; overflow-y: auto;">
+                        <div id="homeworkList" class="homework-columns">
+                            <!-- 作业列表将在这里动态生成 -->
+                        </div>
+                        
+                        <div id="emptyState" class="text-center py-16 hidden">
+                            <i class="fas fa-clipboard text-6xl text-gray-300 mb-4"></i>
+                            <p class="text-gray-500 text-lg mb-4">今天还没有登记作业</p>
+                            <button onclick="showAddHomeworkModal()" class="gradient-bg text-white px-6 py-3 rounded-lg hover:opacity-90 transition">
+                                <i class="fas fa-plus mr-2"></i>登记第一个作业
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 历史实例 -->
+        <div class="mt-8 no-print">
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-800">
+                        <i class="fas fa-history mr-2 text-yellow-600"></i>历史记录
+                    </h2>
+                    <div class="flex space-x-2">
+                        <button onclick="renderHistory()" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-lg transition text-sm">
+                            <i class="fas fa-sync-alt mr-1"></i>刷新
+                        </button>
+                        <button onclick="clearAllHistory()" class="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg transition text-sm">
+                            <i class="fas fa-trash mr-1"></i>清空历史
+                        </button>
+                    </div>
+                </div>
+                <div id="historyList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <!-- 历史实例将在这里动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加/编辑科目模态框 -->
+    <div id="subjectModal" class="fixed inset-0 modal-overlay hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-4 fade-in">
+            <h3 id="subjectModalTitle" class="text-xl font-semibold text-gray-800 mb-4">添加科目</h3>
+            <form id="subjectForm" onsubmit="saveSubject(event)">
+                <input type="hidden" id="subjectId">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">科目名称</label>
+                    <input type="text" id="subjectName" required 
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">颜色标识</label>
+                    <div class="flex flex-wrap gap-2" id="colorPicker">
+                        <!-- 颜色选择器将在这里生成 -->
+                    </div>
+                    <input type="hidden" id="subjectColor" value="#667eea">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">备注说明</label>
+                    <input type="text" id="subjectNote" placeholder="可选，如教师姓名等"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeSubjectModal()" 
+                            class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition">取消</button>
+                    <button type="submit" class="px-4 py-2 gradient-bg text-white rounded-lg hover:opacity-90 transition">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 添加/编辑作业模态框 -->
+    <div id="homeworkModal" class="fixed inset-0 modal-overlay hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-2xl mx-4 fade-in max-h-[90vh] overflow-y-auto">
+            <h3 id="homeworkModalTitle" class="text-xl font-semibold text-gray-800 mb-4">登记作业</h3>
+            <form id="homeworkForm" onsubmit="saveHomework(event)">
+                <input type="hidden" id="homeworkId">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-gray-700 text-sm font-medium mb-2">科目</label>
+                        <select id="homeworkSubject" required 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <!-- 科目选项将在这里生成 -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-sm font-medium mb-2">上缴时间</label>
+                        <input type="text" id="homeworkDueTime" placeholder="如：下周一早上" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">字体大小</label>
+                    <div class="flex items-center space-x-4">
+                        <input type="range" id="fontSizeSlider" min="1" max="6" value="3" 
+                               class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                               onchange="updateFontSizePreview(this.value)">
+                        <span id="fontSizePreview" class="text-lg font-medium px-3 py-1 bg-gray-100 rounded">标准</span>
+                    </div>
+                    <div class="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>小</span>
+                        <span>标准</span>
+                        <span>大</span>
+                        <span>超大</span>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">作业内容</label>
+                    <textarea id="homeworkContent" required rows="6" 
+                              placeholder="详细描述作业内容，支持多行输入..."
+                              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"></textarea>
+                    <p class="text-xs text-gray-500 mt-1">提示：内容将按设置的字体大小展示，方便后排同学查看</p>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">附加说明</label>
+                    <input type="text" id="homeworkNote" placeholder="可选，如页码、具体要求等"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                <!-- 预览区域 -->
+                <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">
+                        <i class="fas fa-eye mr-1"></i>预览效果
+                    </label>
+                    <div id="contentPreview" class="p-3 bg-white border border-gray-200 rounded min-h-[60px]">
+                        作业内容预览...
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeHomeworkModal()" 
+                            class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition">取消</button>
+                    <button type="submit" class="px-4 py-2 gradient-bg text-white rounded-lg hover:opacity-90 transition">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 滚动设置模态框 -->
+    <div id="scrollSettingsModal" class="fixed inset-0 modal-overlay hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-4 fade-in">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">
+                <i class="fas fa-cog mr-2 text-purple-600"></i>自动滚动设置
+            </h3>
+            <form id="scrollSettingsForm" onsubmit="saveScrollSettings(event)">
+                <div class="mb-5">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">
+                        <i class="fas fa-clock mr-1"></i>滚动间隔时间（秒）
+                    </label>
+                    <div class="flex items-center space-x-3">
+                        <input type="range" id="scrollIntervalSlider" min="3" max="60" value="10" 
+                               class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                               onchange="updateIntervalPreview(this.value)">
+                        <span id="intervalPreview" class="text-lg font-medium px-3 py-1 bg-gray-100 rounded w-20 text-center">10 秒</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">建议设置 5-30 秒，太短会影响阅读</p>
+                </div>
+                
+                <div class="mb-5">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">
+                        <i class="fas fa-arrows-alt-v mr-1"></i>每次滚动距离（作业块数量）
+                    </label>
+                    <div class="flex items-center space-x-3">
+                        <input type="range" id="scrollDistanceSlider" min="1" max="10" value="3" 
+                               class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                               onchange="updateDistancePreview(this.value)">
+                        <span id="distancePreview" class="text-lg font-medium px-3 py-1 bg-gray-100 rounded w-20 text-center">3 个</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">每次滚动跨越的作业块数量</p>
+                </div>
+                
+                <div class="mb-5">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">
+                        <i class="fas fa-magic mr-1"></i>滚动模式
+                    </label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="flex items-center p-3 border-2 border-purple-500 bg-purple-50 rounded-lg cursor-pointer">
+                            <input type="radio" name="scrollMode" value="smooth" checked class="mr-2">
+                            <span class="text-sm">平滑滚动</span>
+                        </label>
+                        <label class="flex items-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-gray-300">
+                            <input type="radio" name="scrollMode" value="instant" class="mr-2">
+                            <span class="text-sm">瞬间跳转</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="mb-5">
+                    <label class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg cursor-pointer">
+                        <input type="checkbox" id="highlightOnScroll" checked class="w-5 h-5 text-purple-600 rounded">
+                        <span class="text-gray-700">滚动时高亮当前作业块</span>
+                    </label>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="resetScrollSettings()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition">
+                        <i class="fas fa-undo mr-1"></i>重置
+                    </button>
+                    <button type="button" onclick="closeScrollSettings()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition">取消</button>
+                    <button type="submit" class="px-4 py-2 gradient-bg text-white rounded-lg hover:opacity-90 transition">保存设置</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 通知提示 -->
+    <div id="notification" class="fixed top-4 right-4 z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg p-4 border-l-4 border-green-500 notification">
+            <div class="flex items-center">
+                <i id="notificationIcon" class="fas fa-check-circle text-green-500 mr-2"></i>
+                <span id="notificationMessage" class="text-gray-700"></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 数据模型
+        let appData = {
+            subjects: [],
+            panels: {},
+            currentDateString: '',
+            isPanelExpanded: false,
+            isDualColumn: false,
+            sortMode: 'subject',
+            scrollSettings: {
+                enabled: false,
+                interval: 10,
+                distance: 3,
+                mode: 'smooth',
+                highlight: true
+            }
+        };
+
+        // 滚动控制变量
+        let scrollTimer = null;
+        let countdownTimer = null;
+        let currentScrollPosition = 0;
+        let totalScrollable = 0;
+
+        // 颜色选项
+        const colorOptions = [
+            '#667eea', '#764ba2', '#f093fb', '#f5576c', 
+            '#4facfe', '#00f2fe', '#43e97b', '#38f9d7',
+            '#fa709a', '#fee140', '#30cfd0', '#330867',
+            '#a8edea', '#fed6e3', '#5ee7df', '#b490ca'
+        ];
+
+        // 字体大小映射
+        const fontSizeMap = {
+            1: { class: 'text-size-sm', label: '小' },
+            2: { class: 'text-size-base', label: '标准' },
+            3: { class: 'text-size-lg', label: '大' },
+            4: { class: 'text-size-xl', label: '超大' },
+            5: { class: 'text-size-2xl', label: '特大' },
+            6: { class: 'text-size-3xl', label: '巨大' }
+        };
+
+        // 单个作业卡片的估计高度（像素）
+        const ESTIMATED_CARD_HEIGHT = 140;
+        const SUBJECT_HEADER_HEIGHT = 50;
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            initializeColorPicker();
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('currentDate').value = today;
+            appData.currentDateString = today;
+            loadPanelByDate(today);
+            renderSubjects();
+            renderHistory();
+            initScrollSettings();
+            updateDualColumnUI();
+            updateFullscreenUI();
+            
+            // 内容预览实时更新
+            document.getElementById('homeworkContent').addEventListener('input', updatePreview);
+            document.getElementById('fontSizeSlider').addEventListener('input', () => {
+                updateFontSizePreview(document.getElementById('fontSizeSlider').value);
+                updatePreview();
+            });
+            
+            // 监听 ESC 退出全屏
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && appData.isPanelExpanded) {
+                    toggleFullscreen();
+                }
+            });
+        });
+
+        // 初始化颜色选择器
+        function initializeColorPicker() {
+            const colorPicker = document.getElementById('colorPicker');
+            colorOptions.forEach((color, index) => {
+                const colorBtn = document.createElement('button');
+                colorBtn.type = 'button';
+                colorBtn.className = `w-8 h-8 rounded-full border-2 border-white shadow-md hover:scale-110 transition transform ${index === 0 ? 'ring-2 ring-purple-500' : ''}`;
+                colorBtn.style.backgroundColor = color;
+                colorBtn.onclick = () => selectColor(color, colorBtn);
+                colorPicker.appendChild(colorBtn);
+            });
+        }
+
+        // 选择颜色
+        function selectColor(color, btn) {
+            document.getElementById('subjectColor').value = color;
+            const buttons = document.querySelectorAll('#colorPicker button');
+            buttons.forEach(b => b.classList.remove('ring-2', 'ring-purple-500'));
+            btn.classList.add('ring-2', 'ring-purple-500');
+        }
+
+        // 加载数据
+        function loadData() {
+            const saved = localStorage.getItem('homeworkDisplayData');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                appData = { ...appData, ...parsed };
+                if (!appData.scrollSettings) {
+                    appData.scrollSettings = {
+                        enabled: false,
+                        interval: 10,
+                        distance: 3,
+                        mode: 'smooth',
+                        highlight: true
+                    };
+                }
+            }
+        }
+
+        // 保存数据
+        function saveData() {
+            localStorage.setItem('homeworkDisplayData', JSON.stringify(appData));
+        }
+
+        // 获取或创建面板
+        function getOrCreatePanel(dateString) {
+            if (!appData.panels[dateString]) {
+                appData.panels[dateString] = {
+                    date: dateString,
+                    homeworks: [],
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+                saveData();
+            }
+            return appData.panels[dateString];
+        }
+
+        // 按日期加载面板
+        function loadPanelByDate(dateString) {
+            appData.currentDateString = dateString;
+            const panel = getOrCreatePanel(dateString);
+            
+            const dateObj = new Date(dateString);
+            const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+            document.getElementById('panelDate').textContent = dateObj.toLocaleDateString('zh-CN', options);
+            
+            renderHomeworks(panel.homeworks);
+            updateStats(panel.homeworks);
+            
+            if (appData.scrollSettings.enabled) {
+                resetScroll();
+            }
+        }
+
+        // 改变日期
+        function changeDate(days) {
+            const currentDate = new Date(appData.currentDateString);
+            currentDate.setDate(currentDate.getDate() + days);
+            const newDateString = currentDate.toISOString().split('T')[0];
+            document.getElementById('currentDate').value = newDateString;
+            loadPanelByDate(newDateString);
+        }
+
+        // 显示今天面板
+        function showTodayPanel() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('currentDate').value = today;
+            loadPanelByDate(today);
+        }
+
+        // 渲染科目列表
+        function renderSubjects() {
+            const subjectList = document.getElementById('subjectList');
+            if (appData.subjects.length === 0) {
+                subjectList.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-book text-3xl mb-2 text-gray-300"></i>
+                        <p class="text-sm">还没有科目</p>
+                        <button onclick="showAddSubjectModal()" class="mt-2 text-purple-600 hover:text-purple-800 text-sm">
+                            <i class="fas fa-plus mr-1"></i>添加科目
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            subjectList.innerHTML = appData.subjects.map(subject => {
+                const homeworkCount = countHomeworksBySubject(subject.id);
+                return `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition group">
+                        <div class="flex items-center space-x-3 flex-1 min-w-0">
+                            <span class="subject-color-dot flex-shrink-0" style="background-color: ${subject.color}"></span>
+                            <div class="flex-1 min-w-0">
+                                <span class="font-medium text-gray-700 block truncate">${subject.name}</span>
+                                ${subject.note ? `<span class="text-xs text-gray-500 block truncate">${subject.note}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2 flex-shrink-0">
+                            <span class="text-xs text-gray-400 bg-white px-2 py-1 rounded">${homeworkCount}</span>
+                            <div class="flex space-x-1 opacity-0 group-hover:opacity-100 transition">
+                                <button onclick="editSubject('${subject.id}')" class="text-blue-600 hover:text-blue-800 p-1">
+                                    <i class="fas fa-edit text-xs"></i>
+                                </button>
+                                <button onclick="deleteSubject('${subject.id}')" class="text-red-600 hover:text-red-800 p-1">
+                                    <i class="fas fa-trash text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 统计某科目的作业数
+        function countHomeworksBySubject(subjectId) {
+            const panel = getOrCreatePanel(appData.currentDateString);
+            return panel.homeworks.filter(h => h.subjectId === subjectId).length;
+        }
+
+        // ==================== 智能双列分配算法 ====================
+        
+        /**
+         * 智能分配科目到两列，使得两列总高度大致相等
+         * 使用贪心算法：按高度降序排序，每次将当前科目放到较短的列
+         */
+        function balanceSubjectsToColumns(groupedHomeworks) {
+            const subjectIds = Object.keys(groupedHomeworks);
+            
+            if (subjectIds.length === 0) {
+                return { left: [], right: [] };
+            }
+            
+            if (subjectIds.length === 1) {
+                return { left: [subjectIds[0]], right: [] };
+            }
+            
+            // 计算每个科目的估计高度
+            const subjectHeights = subjectIds.map(subjectId => {
+                const homeworks = groupedHomeworks[subjectId];
+                const height = SUBJECT_HEADER_HEIGHT + (homeworks.length * ESTIMATED_CARD_HEIGHT);
+                return { subjectId, height, count: homeworks.length };
+            });
+            
+            // 按高度降序排序
+            subjectHeights.sort((a, b) => b.height - a.height);
+            
+            // 贪心分配
+            const left = [];
+            const right = [];
+            let leftHeight = 0;
+            let rightHeight = 0;
+            
+            subjectHeights.forEach(({ subjectId, height }) => {
+                if (leftHeight <= rightHeight) {
+                    left.push(subjectId);
+                    leftHeight += height;
+                } else {
+                    right.push(subjectId);
+                    rightHeight += height;
+                }
+            });
+            
+            return { left, right, leftHeight, rightHeight };
+        }
+
+        // 渲染作业列表 - 智能双列布局
+        function renderHomeworks(homeworks) {
+            const homeworkList = document.getElementById('homeworkList');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (homeworks.length === 0) {
+                homeworkList.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            
+            let sortedHomeworks = [...homeworks];
+            
+            if (appData.sortMode === 'subject') {
+                // 按科目分组
+                const grouped = {};
+                sortedHomeworks.forEach(hw => {
+                    if (!grouped[hw.subjectId]) {
+                        grouped[hw.subjectId] = [];
+                    }
+                    grouped[hw.subjectId].push(hw);
+                });
+                
+                if (appData.isDualColumn && Object.keys(grouped).length > 1) {
+                    // 智能双列模式
+                    const { left, right } = balanceSubjectsToColumns(grouped);
+                    
+                    const leftHtml = left.map(subjectId => {
+                        const subject = appData.subjects.find(s => s.id === subjectId);
+                        if (!subject) return '';
+                        return renderSubjectGroup(subject, grouped[subjectId]);
+                    }).join('');
+                    
+                    const rightHtml = right.map(subjectId => {
+                        const subject = appData.subjects.find(s => s.id === subjectId);
+                        if (!subject) return '';
+                        return renderSubjectGroup(subject, grouped[subjectId]);
+                    }).join('');
+                    
+                    homeworkList.innerHTML = `
+                        <div class="column-container">${leftHtml}</div>
+                        <div class="column-container">${rightHtml}</div>
+                    `;
+                } else {
+                    // 单列模式
+                    let html = '';
+                    Object.keys(grouped).forEach(subjectId => {
+                        const subject = appData.subjects.find(s => s.id === subjectId);
+                        if (!subject) return;
+                        html += renderSubjectGroup(subject, grouped[subjectId]);
+                    });
+                    homeworkList.innerHTML = html;
+                }
+            } else {
+                // 按上缴时间排序 - 单列显示
+                sortedHomeworks.sort((a, b) => {
+                    if (!a.dueTime) return 1;
+                    if (!b.dueTime) return -1;
+                    return a.dueTime.localeCompare(b.dueTime);
+                });
+                
+                homeworkList.innerHTML = sortedHomeworks.map(hw => {
+                    const subject = appData.subjects.find(s => s.id === hw.subjectId);
+                    return renderHomeworkCard(hw, subject);
+                }).join('');
+            }
+            
+            // 如果滚动已开启，重新初始化滚动
+            if (appData.scrollSettings.enabled) {
+                setTimeout(() => initScroll(), 100);
+            }
+        }
+
+        // 渲染科目组
+        function renderSubjectGroup(subject, homeworks) {
+            return `
+                <div class="subject-group bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <div class="flex items-center mb-3 pb-2 border-b border-gray-200">
+                        <span class="subject-color-dot mr-2" style="background-color: ${subject.color}"></span>
+                        <h3 class="text-lg font-semibold text-gray-800">${subject.name}</h3>
+                        ${subject.note ? `<span class="ml-2 text-sm text-gray-500">(${subject.note})</span>` : ''}
+                        <span class="ml-auto text-sm text-gray-400 bg-white px-2 py-1 rounded">${homeworks.length}项</span>
+                    </div>
+                    <div class="space-y-3">
+                        ${homeworks.map(hw => renderHomeworkCard(hw, subject)).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // 渲染单个作业卡片
+        function renderHomeworkCard(hw, subject) {
+            const fontSizeClass = fontSizeMap[hw.fontSize || 3]?.class || 'text-size-lg';
+            const fontSizeLabel = fontSizeMap[hw.fontSize || 3]?.label || '标准';
+            
+            const metaItems = [];
+            if (subject) {
+                metaItems.push(`<span class="flex items-center"><span class="subject-color-dot mr-1" style="background-color: ${subject.color}"></span>${subject.name}</span>`);
+            }
+            if (hw.dueTime) {
+                metaItems.push(`<span class="flex items-center"><i class="fas fa-clock mr-1 text-gray-400"></i>${hw.dueTime}</span>`);
+            }
+            if (hw.note) {
+                metaItems.push(`<span class="flex items-center"><i class="fas fa-sticky-note mr-1 text-gray-400"></i>${hw.note}</span>`);
+            }
+            metaItems.push(`<span class="flex items-center"><i class="fas fa-text-height mr-1 text-gray-400"></i>${fontSizeLabel}</span>`);
+            
+            const metaHtml = metaItems.map(item => `<span class="flex items-center text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded whitespace-nowrap">${item}</span>`).join('');
+            
+            return `
+                <div class="homework-card p-4 bg-gradient-to-r from-white to-gray-50 rounded-lg card-hover homework-item" 
+                     style="border-left-color: ${subject?.color || '#667eea'}"
+                     data-homework-id="${hw.id}">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1 min-w-0">
+                            <p class="${fontSizeClass} text-gray-800 leading-relaxed whitespace-pre-wrap mb-3">${hw.content}</p>
+                            <div class="flex flex-wrap items-center gap-1">
+                                ${metaHtml}
+                            </div>
+                        </div>
+                        <div class="flex space-x-1 ml-2 no-print flex-shrink-0">
+                            <button onclick="editHomework('${hw.id}')" class="text-blue-600 hover:text-blue-800 p-1.5 hover:bg-blue-50 rounded transition" title="编辑">
+                                <i class="fas fa-edit text-sm"></i>
+                            </button>
+                            <button onclick="deleteHomework('${hw.id}')" class="text-red-600 hover:text-red-800 p-1.5 hover:bg-red-50 rounded transition" title="删除">
+                                <i class="fas fa-trash text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 更新统计
+        function updateStats(homeworks) {
+            const total = homeworks.length;
+            const subjectIds = [...new Set(homeworks.map(h => h.subjectId))];
+            
+            document.getElementById('totalHomeworks').textContent = total;
+            document.getElementById('subjectCount').textContent = subjectIds.length;
+            
+            const panel = getOrCreatePanel(appData.currentDateString);
+            const updateTime = new Date(panel.updatedAt);
+            document.getElementById('lastUpdate').textContent = updateTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // ==================== 双列布局功能 ====================
+        
+        function toggleDualColumn() {
+            appData.isDualColumn = !appData.isDualColumn;
+            saveData();
+            updateDualColumnUI();
+            const panel = getOrCreatePanel(appData.currentDateString);
+            renderHomeworks(panel.homeworks);
+            showNotification(appData.isDualColumn ? '已开启智能双列布局' : '已关闭智能双列布局');
+        }
+        
+        function updateDualColumnUI() {
+            const btn = document.getElementById('dualColumnBtn');
+            const text = document.getElementById('dualColumnText');
+            const homeworkList = document.getElementById('homeworkList');
+            
+            if (appData.isDualColumn) {
+                text.textContent = '智能双列：开';
+                btn.className = 'w-full px-4 py-2 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded-lg transition text-sm text-left border-2 border-indigo-300';
+                if (homeworkList) homeworkList.classList.add('dual-column');
+            } else {
+                text.textContent = '智能双列：关';
+                btn.className = 'w-full px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg transition text-sm text-left';
+                if (homeworkList) homeworkList.classList.remove('dual-column');
+            }
+        }
+
+        // ==================== 全屏功能 - 已修复 ====================
+        
+        function toggleFullscreen() {
+            if (appData.isPanelExpanded) {
+                exitFullscreen();
+            } else {
+                enterFullscreen();
+            }
+        }
+        
+        function enterFullscreen() {
+            appData.isPanelExpanded = true;
+            saveData();
+            updateFullscreenUI();
+            
+            const panel = document.getElementById('homeworkPanel');
+            const overlay = document.getElementById('fullscreenOverlay');
+            const subjectPanel = document.getElementById('subjectPanel');
+            const mainGrid = document.getElementById('mainGrid');
+            
+            panel.classList.add('panel-expanded');
+            overlay.classList.add('active');
+            
+            if (subjectPanel) subjectPanel.classList.add('hidden');
+            if (mainGrid) {
+                mainGrid.classList.remove('grid');
+                mainGrid.classList.add('block');
+            }
+            
+            setTimeout(() => {
+                initScroll();
+                if (appData.scrollSettings.enabled) {
+                    scheduleNextScroll();
+                }
+            }, 300);
+            
+            showNotification('已进入全屏展示模式');
+        }
+        
+        function exitFullscreen() {
+            appData.isPanelExpanded = false;
+            saveData();
+            updateFullscreenUI();
+            
+            const panel = document.getElementById('homeworkPanel');
+            const overlay = document.getElementById('fullscreenOverlay');
+            const subjectPanel = document.getElementById('subjectPanel');
+            const mainGrid = document.getElementById('mainGrid');
+            
+            panel.classList.remove('panel-expanded');
+            overlay.classList.remove('active');
+            
+            if (subjectPanel) subjectPanel.classList.remove('hidden');
+            if (mainGrid) {
+                mainGrid.classList.remove('block');
+                mainGrid.classList.add('grid');
+            }
+            
+            setTimeout(() => {
+                initScroll();
+            }, 300);
+            
+            showNotification('已退出全屏模式');
+        }
+        
+        function updateFullscreenUI() {
+            const fullscreenIcon = document.getElementById('fullscreenIcon');
+            const fullscreenText = document.getElementById('fullscreenText');
+            const expandBtnIcon = document.getElementById('expandBtnIcon');
+            const expandBtn = document.getElementById('expandBtn');
+            
+            if (appData.isPanelExpanded) {
+                // 全屏状态 - 显示退出图标
+                if (fullscreenIcon) {
+                    fullscreenIcon.className = 'fas fa-compress mr-2';
+                }
+                if (fullscreenText) {
+                    fullscreenText.textContent = '退出全屏模式';
+                }
+                if (expandBtnIcon) {
+                    expandBtnIcon.className = 'fas fa-compress';
+                }
+                if (expandBtn) {
+                    expandBtn.title = '退出全屏';
+                }
+            } else {
+                // 普通状态 - 显示进入图标
+                if (fullscreenIcon) {
+                    fullscreenIcon.className = 'fas fa-expand mr-2';
+                }
+                if (fullscreenText) {
+                    fullscreenText.textContent = '全屏展示模式';
+                }
+                if (expandBtnIcon) {
+                    expandBtnIcon.className = 'fas fa-expand';
+                }
+                if (expandBtn) {
+                    expandBtn.title = '全屏展示';
+                }
+            }
+        }
+
+        // ==================== 自动滚动功能 ====================
+        
+        function initScrollSettings() {
+            const settings = appData.scrollSettings;
+            document.getElementById('scrollIntervalSlider').value = settings.interval;
+            document.getElementById('scrollDistanceSlider').value = settings.distance;
+            updateIntervalPreview(settings.interval);
+            updateDistancePreview(settings.distance);
+            updateScrollButtonState();
+        }
+        
+        function updateIntervalPreview(value) {
+            document.getElementById('intervalPreview').textContent = value + '秒';
+        }
+        
+        function updateDistancePreview(value) {
+            document.getElementById('distancePreview').textContent = value + '个';
+        }
+        
+        function showScrollSettings() {
+            document.getElementById('scrollSettingsModal').classList.remove('hidden');
+            document.getElementById('scrollSettingsModal').classList.add('flex');
+            
+            const settings = appData.scrollSettings;
+            document.getElementById('scrollIntervalSlider').value = settings.interval;
+            document.getElementById('scrollDistanceSlider').value = settings.distance;
+            document.querySelector(`input[name="scrollMode"][value="${settings.mode}"]`).checked = true;
+            document.getElementById('highlightOnScroll').checked = settings.highlight;
+            updateIntervalPreview(settings.interval);
+            updateDistancePreview(settings.distance);
+        }
+        
+        function closeScrollSettings() {
+            document.getElementById('scrollSettingsModal').classList.add('hidden');
+            document.getElementById('scrollSettingsModal').classList.remove('flex');
+        }
+        
+        function saveScrollSettings(event) {
+            event.preventDefault();
+            
+            appData.scrollSettings.interval = parseInt(document.getElementById('scrollIntervalSlider').value);
+            appData.scrollSettings.distance = parseInt(document.getElementById('scrollDistanceSlider').value);
+            appData.scrollSettings.mode = document.querySelector('input[name="scrollMode"]:checked').value;
+            appData.scrollSettings.highlight = document.getElementById('highlightOnScroll').checked;
+            
+            saveData();
+            closeScrollSettings();
+            
+            if (appData.scrollSettings.enabled) {
+                stopScroll();
+                startScroll();
+            }
+            
+            showNotification('滚动设置已保存');
+        }
+        
+        function resetScrollSettings() {
+            appData.scrollSettings = {
+                enabled: false,
+                interval: 10,
+                distance: 3,
+                mode: 'smooth',
+                highlight: true
+            };
+            saveData();
+            initScrollSettings();
+            showNotification('设置已重置为默认值');
+        }
+        
+        function toggleAutoScroll() {
+            if (appData.scrollSettings.enabled) {
+                stopScroll();
+            } else {
+                startScroll();
+            }
+        }
+        
+        function startScroll() {
+            const panel = getOrCreatePanel(appData.currentDateString);
+            if (panel.homeworks.length === 0) {
+                showNotification('没有作业可滚动', 'error');
+                return;
+            }
+            
+            appData.scrollSettings.enabled = true;
+            saveData();
+            updateScrollButtonState();
+            updateScrollStatus(true);
+            
+            initScroll();
+            scheduleNextScroll();
+            
+            showNotification('自动滚动已启动');
+        }
+        
+        function stopScroll() {
+            appData.scrollSettings.enabled = false;
+            saveData();
+            updateScrollButtonState();
+            updateScrollStatus(false);
+            
+            if (scrollTimer) {
+                clearTimeout(scrollTimer);
+                scrollTimer = null;
+            }
+            if (countdownTimer) {
+                clearInterval(countdownTimer);
+                countdownTimer = null;
+            }
+            
+            document.querySelectorAll('.homework-highlight').forEach(el => {
+                el.classList.remove('homework-highlight');
+            });
+            
+            showNotification('自动滚动已停止');
+        }
+        
+        function resetScroll() {
+            currentScrollPosition = 0;
+            const container = document.getElementById('homeworkListContainer');
+            if (container) {
+                container.scrollTop = 0;
+            }
+        }
+        
+        function initScroll() {
+            const container = document.getElementById('homeworkListContainer');
+            const homeworkItems = document.querySelectorAll('.homework-item');
+            
+            if (container && homeworkItems.length > 0) {
+                totalScrollable = container.scrollHeight - container.clientHeight;
+                currentScrollPosition = 0;
+            }
+        }
+        
+        function performScroll() {
+            const container = document.getElementById('homeworkListContainer');
+            const homeworkItems = document.querySelectorAll('.homework-item');
+            
+            if (!container || homeworkItems.length === 0) return;
+            
+            const settings = appData.scrollSettings;
+            const itemHeight = homeworkItems[0]?.offsetHeight || 150;
+            const scrollAmount = itemHeight * settings.distance;
+            
+            if (settings.highlight) {
+                document.querySelectorAll('.homework-highlight').forEach(el => {
+                    el.classList.remove('homework-highlight');
+                });
+            }
+            
+            currentScrollPosition += scrollAmount;
+            
+            if (currentScrollPosition >= totalScrollable) {
+                currentScrollPosition = 0;
+                if (settings.mode === 'smooth') {
+                    container.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    container.scrollTop = 0;
+                }
+                showNotification('已回到列表顶部', 'info');
+            } else {
+                if (settings.mode === 'smooth') {
+                    container.scrollTo({ top: currentScrollPosition, behavior: 'smooth' });
+                } else {
+                    container.scrollTop = currentScrollPosition;
+                }
+            }
+            
+            if (settings.highlight) {
+                setTimeout(() => {
+                    const visibleItems = getVisibleHomeworkItems(container);
+                    visibleItems.forEach(item => {
+                        item.classList.add('homework-highlight');
+                    });
+                }, 500);
+            }
+        }
+        
+        function getVisibleHomeworkItems(container) {
+            const items = document.querySelectorAll('.homework-item');
+            const containerRect = container.getBoundingClientRect();
+            const visibleItems = [];
+            
+            items.forEach(item => {
+                const itemRect = item.getBoundingClientRect();
+                if (itemRect.top >= containerRect.top && itemRect.bottom <= containerRect.bottom) {
+                    visibleItems.push(item);
+                }
+            });
+            
+            return visibleItems.length > 0 ? visibleItems : [items[0]];
+        }
+        
+        function scheduleNextScroll() {
+            if (!appData.scrollSettings.enabled) return;
+            
+            const interval = appData.scrollSettings.interval * 1000;
+            let elapsed = 0;
+            const updateInterval = 100;
+            
+            const progressBar = document.getElementById('scrollProgressBar');
+            const progressFill = document.getElementById('scrollProgressFill');
+            progressBar.classList.remove('hidden');
+            progressFill.style.width = '0%';
+            
+            countdownTimer = setInterval(() => {
+                elapsed += updateInterval;
+                const progress = (elapsed / interval) * 100;
+                progressFill.style.width = `${Math.min(progress, 100)}%`;
+                
+                if (elapsed >= interval) {
+                    clearInterval(countdownTimer);
+                    performScroll();
+                    progressFill.style.width = '0%';
+                    scheduleNextScroll();
+                }
+            }, updateInterval);
+        }
+        
+        function updateScrollButtonState() {
+            const btn = document.getElementById('autoScrollBtn');
+            const headerBtn = document.getElementById('headerAutoScrollBtn');
+            
+            if (appData.scrollSettings.enabled) {
+                btn.className = 'w-full px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition text-sm text-left';
+                btn.innerHTML = '<i class="fas fa-stop mr-2"></i><span id="autoScrollText">停止自动滚动</span>';
+                headerBtn.className = 'px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition text-sm';
+                headerBtn.innerHTML = '<i class="fas fa-stop mr-1"></i><span id="headerScrollText">停止</span>';
+            } else {
+                btn.className = 'w-full px-4 py-2 bg-green-50 hover:bg-green-100 text-green-600 rounded-lg transition text-sm text-left';
+                btn.innerHTML = '<i class="fas fa-play mr-2"></i><span id="autoScrollText">开启自动滚动</span>';
+                headerBtn.className = 'px-4 py-2 gradient-bg text-white rounded-lg hover:opacity-90 transition text-sm';
+                headerBtn.innerHTML = '<i class="fas fa-play mr-1"></i><span id="headerScrollText">自动滚动</span>';
+            }
+        }
+        
+        function updateScrollStatus(isActive) {
+            const indicator = document.getElementById('scrollIndicator');
+            const status = document.getElementById('scrollStatus');
+            const progressBar = document.getElementById('scrollProgressBar');
+            
+            if (isActive) {
+                indicator.className = 'fas fa-circle scroll-indicator active text-green-500 text-xs';
+                status.textContent = `滚动中 (${appData.scrollSettings.interval}秒/次)`;
+                progressBar.classList.remove('hidden');
+            } else {
+                indicator.className = 'fas fa-circle scroll-indicator text-gray-400 text-xs';
+                status.textContent = '滚动已停止';
+                progressBar.classList.add('hidden');
+            }
+        }
+
+        // ==================== 其他功能 ====================
+
+        function showAddSubjectModal() {
+            document.getElementById('subjectModalTitle').textContent = '添加科目';
+            document.getElementById('subjectForm').reset();
+            document.getElementById('subjectId').value = '';
+            document.getElementById('subjectColor').value = colorOptions[0];
+            document.getElementById('subjectModal').classList.remove('hidden');
+            document.getElementById('subjectModal').classList.add('flex');
+        }
+
+        function closeSubjectModal() {
+            document.getElementById('subjectModal').classList.add('hidden');
+            document.getElementById('subjectModal').classList.remove('flex');
+        }
+
+        function editSubject(id) {
+            const subject = appData.subjects.find(s => s.id === id);
+            if (!subject) return;
+            
+            document.getElementById('subjectModalTitle').textContent = '编辑科目';
+            document.getElementById('subjectId').value = subject.id;
+            document.getElementById('subjectName').value = subject.name;
+            document.getElementById('subjectColor').value = subject.color;
+            document.getElementById('subjectNote').value = subject.note || '';
+            
+            const buttons = document.querySelectorAll('#colorPicker button');
+            buttons.forEach(btn => {
+                btn.classList.remove('ring-2', 'ring-purple-500');
+                if (btn.style.backgroundColor === subject.color) {
+                    btn.classList.add('ring-2', 'ring-purple-500');
+                }
+            });
+            
+            document.getElementById('subjectModal').classList.remove('hidden');
+            document.getElementById('subjectModal').classList.add('flex');
+        }
+
+        function saveSubject(event) {
+            event.preventDefault();
+            const id = document.getElementById('subjectId').value;
+            const name = document.getElementById('subjectName').value.trim();
+            const color = document.getElementById('subjectColor').value;
+            const note = document.getElementById('subjectNote').value.trim();
+            
+            if (id) {
+                const subject = appData.subjects.find(s => s.id === id);
+                if (subject) {
+                    subject.name = name;
+                    subject.color = color;
+                    subject.note = note;
+                    subject.updatedAt = new Date().toISOString();
+                }
+            } else {
+                appData.subjects.push({
+                    id: Date.now().toString(),
+                    name,
+                    color,
+                    note,
+                    createdAt: new Date().toISOString()
+                });
+            }
+            
+            saveData();
+            renderSubjects();
+            closeSubjectModal();
+            showNotification(id ? '科目已更新' : '科目已添加');
+        }
+
+        function deleteSubject(id) {
+            if (!confirm('确定要删除这个科目吗？相关作业也会被删除。')) return;
+            
+            appData.subjects = appData.subjects.filter(s => s.id !== id);
+            
+            Object.keys(appData.panels).forEach(date => {
+                appData.panels[date].homeworks = appData.panels[date].homeworks.filter(h => h.subjectId !== id);
+            });
+            
+            saveData();
+            renderSubjects();
+            loadPanelByDate(appData.currentDateString);
+            renderHistory();
+            showNotification('科目已删除');
+        }
+
+        function showAddHomeworkModal() {
+            if (appData.subjects.length === 0) {
+                showNotification('请先添加科目', 'error');
+                showAddSubjectModal();
+                return;
+            }
+            
+            document.getElementById('homeworkModalTitle').textContent = '登记作业';
+            document.getElementById('homeworkForm').reset();
+            document.getElementById('homeworkId').value = '';
+            document.getElementById('fontSizeSlider').value = 3;
+            updateFontSizePreview(3);
+            updatePreview();
+            
+            const subjectSelect = document.getElementById('homeworkSubject');
+            subjectSelect.innerHTML = appData.subjects.map(s => 
+                `<option value="${s.id}">${s.name}</option>`
+            ).join('');
+            
+            document.getElementById('homeworkModal').classList.remove('hidden');
+            document.getElementById('homeworkModal').classList.add('flex');
+        }
+
+        function closeHomeworkModal() {
+            document.getElementById('homeworkModal').classList.add('hidden');
+            document.getElementById('homeworkModal').classList.remove('flex');
+        }
+
+        function editHomework(id) {
+            if (appData.scrollSettings.enabled) {
+                stopScroll();
+            }
+            
+            const panel = getOrCreatePanel(appData.currentDateString);
+            const homework = panel.homeworks.find(h => h.id === id);
+            if (!homework) return;
+            
+            document.getElementById('homeworkModalTitle').textContent = '编辑作业';
+            document.getElementById('homeworkId').value = homework.id;
+            document.getElementById('homeworkSubject').value = homework.subjectId;
+            document.getElementById('homeworkDueTime').value = homework.dueTime || '';
+            document.getElementById('homeworkContent').value = homework.content;
+            document.getElementById('homeworkNote').value = homework.note || '';
+            document.getElementById('fontSizeSlider').value = homework.fontSize || 3;
+            updateFontSizePreview(homework.fontSize || 3);
+            updatePreview();
+            
+            document.getElementById('homeworkModal').classList.remove('hidden');
+            document.getElementById('homeworkModal').classList.add('flex');
+        }
+
+        function updateFontSizePreview(value) {
+            const fontSizeInfo = fontSizeMap[value] || fontSizeMap[3];
+            document.getElementById('fontSizePreview').textContent = fontSizeInfo.label;
+            document.getElementById('fontSizePreview').className = `text-lg font-medium px-3 py-1 bg-gray-100 rounded ${fontSizeInfo.class}`;
+        }
+
+        function updatePreview() {
+            const content = document.getElementById('homeworkContent').value || '作业内容预览...';
+            const fontSize = document.getElementById('fontSizeSlider').value;
+            const fontSizeClass = fontSizeMap[fontSize]?.class || 'text-size-lg';
+            
+            const preview = document.getElementById('contentPreview');
+            preview.textContent = content;
+            preview.className = `p-3 bg-white border border-gray-200 rounded min-h-[60px] ${fontSizeClass}`;
+        }
+
+        function saveHomework(event) {
+            event.preventDefault();
+            const id = document.getElementById('homeworkId').value;
+            const subjectId = document.getElementById('homeworkSubject').value;
+            const dueTime = document.getElementById('homeworkDueTime').value.trim();
+            const content = document.getElementById('homeworkContent').value.trim();
+            const note = document.getElementById('homeworkNote').value.trim();
+            const fontSize = parseInt(document.getElementById('fontSizeSlider').value);
+            
+            const panel = getOrCreatePanel(appData.currentDateString);
+            panel.updatedAt = new Date().toISOString();
+            
+            if (id) {
+                const homework = panel.homeworks.find(h => h.id === id);
+                if (homework) {
+                    homework.subjectId = subjectId;
+                    homework.dueTime = dueTime;
+                    homework.content = content;
+                    homework.note = note;
+                    homework.fontSize = fontSize;
+                    homework.updatedAt = new Date().toISOString();
+                }
+            } else {
+                panel.homeworks.push({
+                    id: Date.now().toString(),
+                    subjectId,
+                    dueTime,
+                    content,
+                    note,
+                    fontSize,
+                    createdAt: new Date().toISOString()
+                });
+            }
+            
+            saveData();
+            renderHomeworks(panel.homeworks);
+            updateStats(panel.homeworks);
+            renderSubjects();
+            renderHistory();
+            closeHomeworkModal();
+            showNotification(id ? '作业已更新' : '作业已登记');
+        }
+
+        function deleteHomework(id) {
+            if (!confirm('确定要删除这个作业吗？')) return;
+            
+            if (appData.scrollSettings.enabled) {
+                stopScroll();
+            }
+            
+            const panel = getOrCreatePanel(appData.currentDateString);
+            panel.homeworks = panel.homeworks.filter(h => h.id !== id);
+            panel.updatedAt = new Date().toISOString();
+            
+            saveData();
+            renderHomeworks(panel.homeworks);
+            updateStats(panel.homeworks);
+            renderSubjects();
+            renderHistory();
+            showNotification('作业已删除');
+        }
+
+        function sortHomeworks() {
+            appData.sortMode = appData.sortMode === 'subject' ? 'time' : 'subject';
+            const panel = getOrCreatePanel(appData.currentDateString);
+            renderHomeworks(panel.homeworks);
+            showNotification(appData.sortMode === 'subject' ? '按科目分组' : '按上缴时间排序');
+        }
+
+        function clearTodayHomeworks() {
+            if (!confirm('确定要清空今日所有作业吗？此操作不可恢复。')) return;
+            
+            if (appData.scrollSettings.enabled) {
+                stopScroll();
+            }
+            
+            const panel = getOrCreatePanel(appData.currentDateString);
+            panel.homeworks = [];
+            panel.updatedAt = new Date().toISOString();
+            
+            saveData();
+            renderHomeworks(panel.homeworks);
+            updateStats(panel.homeworks);
+            renderSubjects();
+            renderHistory();
+            showNotification('今日作业已清空');
+        }
+
+        function copyTodayHomeworks() {
+            const panel = getOrCreatePanel(appData.currentDateString);
+            if (panel.homeworks.length === 0) {
+                showNotification('今日没有作业', 'error');
+                return;
+            }
+            
+            let text = `📋 ${appData.currentDateString} 作业清单\n`;
+            text += '='.repeat(40) + '\n\n';
+            
+            const grouped = {};
+            panel.homeworks.forEach(hw => {
+                if (!grouped[hw.subjectId]) grouped[hw.subjectId] = [];
+                grouped[hw.subjectId].push(hw);
+            });
+            
+            Object.keys(grouped).forEach(subjectId => {
+                const subject = appData.subjects.find(s => s.id === subjectId);
+                text += `📚 ${subject?.name || '未知科目'}\n`;
+                text += '-'.repeat(30) + '\n';
+                grouped[subjectId].forEach((hw, index) => {
+                    text += `${index + 1}. ${hw.content}\n`;
+                    if (hw.dueTime) text += `   ⏰ 上缴：${hw.dueTime}\n`;
+                    if (hw.note) text += `   📝 说明：${hw.note}\n`;
+                });
+                text += '\n';
+            });
+            
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification('已复制到剪贴板');
+            }).catch(() => {
+                showNotification('复制失败', 'error');
+            });
+        }
+
+        function renderHistory() {
+            const historyList = document.getElementById('historyList');
+            const dates = Object.keys(appData.panels).sort().reverse();
+            
+            if (dates.length === 0) {
+                historyList.innerHTML = `
+                    <div class="col-span-full text-center py-8 text-gray-500">
+                        <i class="fas fa-history text-3xl mb-2 text-gray-300"></i>
+                        <p class="text-sm">还没有历史记录</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const today = new Date().toISOString().split('T')[0];
+            
+            historyList.innerHTML = dates.slice(0, 12).map(date => {
+                const panel = appData.panels[date];
+                const total = panel.homeworks.length;
+                const isToday = date === today;
+                
+                return `
+                    <div class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition card-hover cursor-pointer" onclick="loadPanelByDate('${date}')">
+                        <div class="flex items-center justify-between mb-1">
+                            <h4 class="font-medium text-gray-800 text-sm">
+                                ${isToday ? '<i class="fas fa-calendar-day text-purple-600 mr-1"></i>' : ''}
+                                ${date}
+                            </h4>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-gray-500">${total}项作业</span>
+                            <button onclick="event.stopPropagation(); deletePanel('${date}')" 
+                                    class="text-red-500 hover:text-red-700 text-xs">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function deletePanel(date) {
+            if (!confirm(`确定要永久删除 ${date} 的记录吗？`)) return;
+            
+            if (appData.scrollSettings.enabled && date === appData.currentDateString) {
+                stopScroll();
+            }
+            
+            delete appData.panels[date];
+            saveData();
+            renderHistory();
+            
+            if (appData.currentDateString === date) {
+                showTodayPanel();
+            }
+            
+            showNotification('历史记录已删除');
+        }
+
+        function clearAllHistory() {
+            if (!confirm('确定要清空所有历史记录吗？今天的记录也会保留。')) return;
+            
+            const today = new Date().toISOString().split('T')[0];
+            const todayPanel = appData.panels[today];
+            
+            appData.panels = {};
+            if (todayPanel) {
+                appData.panels[today] = todayPanel;
+            }
+            
+            saveData();
+            renderHistory();
+            showNotification('历史记录已清空');
+        }
+
+        function exportToTXT() {
+            const panel = getOrCreatePanel(appData.currentDateString);
+            if (panel.homeworks.length === 0) {
+                showNotification('今日没有作业可导出', 'error');
+                return;
+            }
+            
+            let text = generateTXTContent(panel);
+            
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `作业_${appData.currentDateString}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification('导出成功');
+        }
+
+        function generateTXTContent(panel) {
+            let text = `╔══════════════════════════════════════════════════════════╗\n`;
+            text += `║                    每日作业展示                           ║\n`;
+            text += `╠══════════════════════════════════════════════════════════╣\n`;
+            text += `║  日期：${panel.date}                                    ║\n`;
+            text += `║  导出时间：${new Date().toLocaleString('zh-CN')}                    ║\n`;
+            text += `╚══════════════════════════════════════════════════════════╝\n\n`;
+            
+            const grouped = {};
+            panel.homeworks.forEach(hw => {
+                if (!grouped[hw.subjectId]) grouped[hw.subjectId] = [];
+                grouped[hw.subjectId].push(hw);
+            });
+            
+            Object.keys(grouped).forEach((subjectId, index) => {
+                const subject = appData.subjects.find(s => s.id === subjectId);
+                text += `┌──────────────────────────────────────────────────────────────┐\n`;
+                text += `│ 【科目${index + 1}】${subject?.name || '未知科目'}${subject?.note ? ` (${subject.note})` : ''}${' '.repeat(Math.max(0, 35 - (subject?.name?.length || 0)))}│\n`;
+                text += `├──────────────────────────────────────────────────────────────┤\n`;
+                
+                grouped[subjectId].forEach((hw, hwIndex) => {
+                    const fontSizeLabel = fontSizeMap[hw.fontSize || 3]?.label || '标准';
+                    text += `│                                                              │\n`;
+                    text += `│  ${hwIndex + 1}. 作业内容：${' '.repeat(Math.max(0, 24 - hwIndex.toString().length))}│\n`;
+                    
+                    const contentLines = hw.content.split('\n');
+                    contentLines.forEach(line => {
+                        const wrappedLines = wrapText(line, 50);
+                        wrappedLines.forEach((wl, i) => {
+                            text += `│     ${wl}${' '.repeat(Math.max(0, 50 - wl.length))}│\n`;
+                        });
+                    });
+                    
+                    if (hw.dueTime) {
+                        text += `│                                                              │\n`;
+                        text += `│     ⏰ 上缴：${hw.dueTime}  📏 字体：${fontSizeLabel}${' '.repeat(Math.max(0, 28 - hw.dueTime.length - fontSizeLabel.length))}│\n`;
+                    }
+                    if (hw.note) {
+                        text += `│     📝 说明：${hw.note}${' '.repeat(Math.max(0, 38 - hw.note.length))}│\n`;
+                    }
+                    text += `│                                                              │\n`;
+                });
+                
+                text += `└──────────────────────────────────────────────────────────────┘\n\n`;
+            });
+            
+            text += `══════════════════════════════════════════════════════════\n`;
+            text += `感谢使用每日作业展示系统\n`;
+            text += `══════════════════════════════════════════════════════════\n`;
+            
+            return text;
+        }
+
+        function wrapText(text, maxLength) {
+            const lines = [];
+            let currentLine = '';
+            
+            for (let char of text) {
+                if (currentLine.length >= maxLength) {
+                    lines.push(currentLine);
+                    currentLine = char;
+                } else {
+                    currentLine += char;
+                }
+            }
+            
+            if (currentLine) {
+                lines.push(currentLine);
+            }
+            
+            return lines.length > 0 ? lines : [''];
+        }
+
+        function importFromTXT(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const text = e.target.result;
+                    const importedData = parseTXTContent(text);
+                    
+                    if (importedData && importedData.homeworks) {
+                        const panel = getOrCreatePanel(importedData.date);
+                        importedData.homeworks.forEach(hw => {
+                            const exists = panel.homeworks.some(h => 
+                                h.content === hw.content && h.subjectId === hw.subjectId
+                            );
+                            if (!exists) {
+                                panel.homeworks.push({
+                                    ...hw,
+                                    id: Date.now().toString() + Math.random().toString(36).substr(2, 5)
+                                });
+                            }
+                        });
+                        panel.updatedAt = new Date().toISOString();
+                        
+                        if (importedData.subjects) {
+                            importedData.subjects.forEach(subj => {
+                                const exists = appData.subjects.some(s => s.name === subj.name);
+                                if (!exists) {
+                                    appData.subjects.push({
+                                        ...subj,
+                                        id: Date.now().toString() + Math.random().toString(36).substr(2, 5)
+                                    });
+                                }
+                            });
+                        }
+                        
+                        saveData();
+                        loadPanelByDate(importedData.date);
+                        renderSubjects();
+                        renderHistory();
+                        showNotification('导入成功');
+                    } else {
+                        showNotification('文件格式不正确', 'error');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showNotification('文件解析失败', 'error');
+                }
+            };
+            reader.readAsText(file, 'UTF-8');
+            event.target.value = '';
+        }
+
+        function parseTXTContent(text) {
+            const result = {
+                date: '',
+                subjects: [],
+                homeworks: []
+            };
+            
+            const dateMatch = text.match(/日期：(\d{4}-\d{2}-\d{2})/);
+            if (dateMatch) {
+                result.date = dateMatch[1];
+            }
+            
+            const subjectMatches = text.matchAll(/【科目\d+】([^\(]+)(?:\(([^)]+)\))?/g);
+            for (const match of subjectMatches) {
+                result.subjects.push({
+                    name: match[1].trim(),
+                    note: match[2] || ''
+                });
+            }
+            
+            const homeworkSections = text.split(/【科目\d+】/);
+            homeworkSections.forEach((section, index) => {
+                if (index === 0) return;
+                
+                const lines = section.split('\n');
+                let currentSubject = result.subjects[index - 1];
+                let currentHomework = null;
+                
+                lines.forEach(line => {
+                    const numMatch = line.match(/^\s*\d+\.\s*作业内容：/);
+                    if (numMatch) {
+                        if (currentHomework) {
+                            result.homeworks.push(currentHomework);
+                        }
+                        currentHomework = {
+                            subjectId: currentSubject?.id || 'temp',
+                            subjectName: currentSubject?.name || '未知',
+                            content: '',
+                            dueTime: '',
+                            note: '',
+                            fontSize: 3
+                        };
+                        const contentMatch = line.match(/作业内容：(.+)$/);
+                        if (contentMatch) {
+                            currentHomework.content = contentMatch[1].trim();
+                        }
+                        return;
+                    }
+                    
+                    const dueMatch = line.match(/⏰\s*上缴：(.+?)\s*📏\s*字体：(.+)/);
+                    if (dueMatch && currentHomework) {
+                        currentHomework.dueTime = dueMatch[1].trim();
+                        const fontLabel = dueMatch[2].trim();
+                        const fontSize = Object.keys(fontSizeMap).find(key => fontSizeMap[key].label === fontLabel);
+                        currentHomework.fontSize = fontSize ? parseInt(fontSize) : 3;
+                        return;
+                    }
+                    
+                    const noteMatch = line.match(/📝\s*说明：(.+)/);
+                    if (noteMatch && currentHomework) {
+                        currentHomework.note = noteMatch[1].trim();
+                        return;
+                    }
+                    
+                    if (currentHomework && line.trim() && !line.includes('│') && !line.includes('─')) {
+                        const content = line.trim();
+                        if (content && !content.startsWith('⏰') && !content.startsWith('📝') && !content.startsWith('📏')) {
+                            currentHomework.content += '\n' + content;
+                        }
+                    }
+                });
+                
+                if (currentHomework) {
+                    result.homeworks.push(currentHomework);
+                }
+            });
+            
+            return result;
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            const notificationMessage = document.getElementById('notificationMessage');
+            const notificationIcon = document.getElementById('notificationIcon');
+            
+            notificationMessage.textContent = message;
+            
+            if (type === 'error') {
+                notification.querySelector('div').className = 'bg-white rounded-lg shadow-lg p-4 border-l-4 border-red-500 notification';
+                notificationIcon.className = 'fas fa-exclamation-circle text-red-500 mr-2';
+            } else if (type === 'info') {
+                notification.querySelector('div').className = 'bg-white rounded-lg shadow-lg p-4 border-l-4 border-blue-500 notification';
+                notificationIcon.className = 'fas fa-info-circle text-blue-500 mr-2';
+            } else {
+                notification.querySelector('div').className = 'bg-white rounded-lg shadow-lg p-4 border-l-4 border-green-500 notification';
+                notificationIcon.className = 'fas fa-check-circle text-green-500 mr-2';
+            }
+            
+            notification.classList.remove('hidden');
+            
+            setTimeout(() => {
+                notification.classList.add('hidden');
+            }, 3000);
+        }
+
+        document.getElementById('subjectModal').addEventListener('click', (e) => {
+            if (e.target.id === 'subjectModal') closeSubjectModal();
+        });
+
+        document.getElementById('homeworkModal').addEventListener('click', (e) => {
+            if (e.target.id === 'homeworkModal') closeHomeworkModal();
+        });
+
+        document.getElementById('scrollSettingsModal').addEventListener('click', (e) => {
+            if (e.target.id === 'scrollSettingsModal') closeScrollSettings();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (appData.isPanelExpanded) {
+                    toggleFullscreen();
+                } else {
+                    closeSubjectModal();
+                    closeHomeworkModal();
+                    closeScrollSettings();
+                }
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                e.preventDefault();
+                showAddHomeworkModal();
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                toggleAutoScroll();
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                e.preventDefault();
+                toggleFullscreen();
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+                e.preventDefault();
+                toggleDualColumn();
+            }
+        });
+
+        window.addEventListener('beforeunload', () => {
+            if (appData.scrollSettings.enabled) {
+                stopScroll();
+            }
+            saveData();
+        });
+
+        window.addEventListener('resize', () => {
+            if (appData.scrollSettings.enabled) {
+                setTimeout(() => initScroll(), 300);
+            }
+        });
+    </script>
+</body>
+</html>
