@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>快速跳转 · 云·星穹铁道</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(145deg, #0b1120 0%, #19233c 100%);
+      font-family: system-ui, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .card {
+      max-width: 500px;
+      width: 100%;
+      background: rgba(18, 28, 46, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(110, 160, 255, 0.25);
+      border-radius: 36px;
+      padding: 32px 28px;
+      box-shadow: 0 25px 40px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(72, 140, 255, 0.1) inset;
+      transition: transform 0.25s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+      box-shadow: 0 30px 50px -12px #000000cc, 0 0 0 1px #3e7be6 inset;
+      transform: translateY(-3px);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+      border-bottom: 1px dashed #3d5a8c;
+      padding-bottom: 18px;
+    }
+
+    .star-icon {
+      font-size: 28px;
+      line-height: 1;
+      filter: drop-shadow(0 0 8px #7ab2ff);
+    }
+
+    h1 {
+      color: #eaf2ff;
+      font-weight: 500;
+      font-size: 1.9rem;
+      letter-spacing: 2px;
+      text-shadow: 0 4px 12px #00236680;
+    }
+
+    .sub-line {
+      color: #a0bbdf;
+      font-size: 1rem;
+      margin-bottom: 28px;
+      padding-left: 8px;
+      border-left: 3px solid #3e8aff;
+      font-weight: 400;
+    }
+
+    .options-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    /* 唯一选项 —— 云·星穹铁道卡片按钮 */
+    .jump-option {
+      background: rgba(12, 24, 44, 0.7);
+      border: 1.5px solid #2e5580;
+      border-radius: 60px;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 8px 0 #0f1a28;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .jump-option:hover {
+      background: #1a2e4e;
+      border-color: #6da5ff;
+      box-shadow: 0 5px 0 #0f1a28, 0 0 18px #3f7eff66;
+      transform: translateY(2px);
+    }
+
+    .jump-option:active {
+      transform: translateY(6px);
+      box-shadow: 0 2px 0 #0f1a28, 0 0 24px #5b9aff;
+    }
+
+    .option-left {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .game-icon {
+      font-size: 36px;
+      line-height: 1;
+      filter: drop-shadow(0 0 6px cyan);
+    }
+
+    .option-text {
+      color: white;
+    }
+
+    .option-title {
+      font-size: 1.5rem;
+      font-weight: 650;
+      background: linear-gradient(135deg, #c8e2ff, #aaccff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 4px;
+    }
+
+    .option-desc {
+      font-size: 0.9rem;
+      color: #9bb6da;
+      letter-spacing: 0.3px;
+    }
+
+    .arrow-badge {
+      background: #2f4f7a;
+      color: white;
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 40px;
+      font-size: 24px;
+      font-weight: bold;
+      transition: 0.15s;
+      box-shadow: inset 0 1px 3px #b0d0ff66, 0 2px 0 #0e1b2b;
+      border-bottom: 1px solid #5e91d4;
+    }
+
+    .jump-option:hover .arrow-badge {
+      background: #3f72b0;
+      box-shadow: inset 0 1px 4px #e0ecff, 0 2px 0 #1a304b;
+      color: #ffffff;
+    }
+
+    .footer-note {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 20px;
+      color: #6a85aa;
+      font-size: 0.8rem;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge {
+      background: #1f3450;
+      padding: 4px 10px;
+      border-radius: 30px;
+      color: #c1d6ff;
+      font-weight: 400;
+      border: 1px solid #3a6290;
+      font-size: 0.75rem;
+    }
+
+    .note-icon {
+      opacity: 0.7;
+    }
+
+    /* 简单提示 */
+    .visit-hint {
+      color: #afc9ff;
+      font-size: 0.9rem;
+      margin-top: 5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .visit-hint span {
+      background: #1e3858;
+      padding: 4px 12px;
+      border-radius: 24px;
+      border: 1px solid #527fc2;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+
+    /* 保留一个微小说明 —— 点击卡片即跳转 */
+    .clickable-area {
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="header">
+    <span class="star-icon">✨🚂</span>
+    <h1>跃迁·选项</h1>
+  </div>
+
+  <div class="sub-line">
+    <span>🌐 选择目的地 · 即刻出发</span>
+  </div>
+
+  <!-- 选项列表 —— 目前仅一个选项：云·星穹铁道 -->
+  <div class="options-panel">
+    <!-- 
+      点击整个卡片跳转至 https://sr.mihoyo.com/cloud/
+      同时符合无障碍设计：链接本身可被键盘聚焦。
+    -->
+    <a href="https://sr.mihoyo.com/cloud/" 
+       target="_blank" 
+       rel="noopener noreferrer" 
+       class="jump-option"
+       aria-label="前往云·星穹铁道 (在新标签页打开)">
+      <div class="option-left">
+        <div class="game-icon">☁️✨</div>
+        <div class="option-text">
+          <div class="option-title">云·星穹铁道</div>
+          <div class="option-desc">无需下载 · 云端畅玩</div>
+        </div>
+      </div>
+      <div class="arrow-badge" aria-hidden="true">→</div>
+    </a>
+  </div>
+
+  <!-- 装饰性说明，强调当前只有一个选项，并且清晰展示目标网址 -->
+  <div class="visit-hint">
+    <span>🔗 sr.mihoyo.com/cloud/</span>
+  </div>
+
+  <!-- 底部小点缀，显示总选项数量，符合“目前只有一个选项” -->
+  <div class="footer-note">
+    <span class="note-icon">📋</span>
+    <span class="badge">1 个快速跳转</span>
+    <span style="margin-left: auto; opacity: 0.7;">⚡ 云·星穹铁道</span>
+  </div>
+
+  <!-- 一个小提示：点击上方卡片即可在新标签页打开（若需要同页跳转可调整，但保留target=_blank更符合跳转习惯） -->
+  <div style="margin-top: 20px; text-align: center; color: #7b98c7; font-size: 0.8rem; border-top: 1px dashed #2a4160; padding-top: 16px;">
+    <span>✨ 轻触卡片 —— 前往「云·星穹铁道」 ✨</span>
+  </div>
+</div>
+
+<!-- 
+  设计说明：
+  - 页面干净、具有星空铁道风格。
+  - 唯一选项醒目标识为“云·星穹铁道”，并附有简要说明。
+  - 整个卡片是超链接，点击即在新标签页打开目标网址。
+  - 对移动端友好，支持悬停/点击效果。
+  - 完全符合需求：打开后显示选项，对应跳转到 https://sr.mihoyo.com/cloud/。
+-->
+</body>
+</html>
