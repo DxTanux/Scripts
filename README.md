@@ -68,11 +68,9 @@
 
 | 盘符 / 分区 | 用途说明 |
 |------------|---------|
-| **D 盘** | 大部分数据存放在此，具体内容见下图<br><img width="1920" height="1080" alt="PixPin_2026-06-05_07-32-33" src="https://github.com/user-attachments/assets/c4b7637d-e657-4661-ab20-2b2ba8fc3ccf" />
-) |
+| **D 盘** | 大部分数据存放在此，具体内容见下图<br><img width="1920" height="1080" alt="PixPin_2026-06-05_07-32-33" src="https://github.com/user-attachments/assets/c4b7637d-e657-4661-ab20-2b2ba8fc3ccf" /> |
 | **E 盘** | 学科资料盘，内置各科 PPT 等<br>子目录 `E:\学科资料\###\` 下还有我们留下的一些资料 |
-| **64GB 独立分区** | 划给 **Ubuntu** 系统使用，分区表如下<br><img width="1641" height="1072" alt="PixPin_2026-06-05_07-34-14" src="https://github.com/user-attachments/assets/44addab8-d7e3-48fc-a416-f1430c689472" />
-) |
+| **64GB 独立分区** | 划给 **Ubuntu** 系统使用，分区表如下<br><img width="1641" height="1072" alt="PixPin_2026-06-05_07-34-14" src="https://github.com/user-attachments/assets/44addab8-d7e3-48fc-a416-f1430c689472" />|
 
 ---
 
