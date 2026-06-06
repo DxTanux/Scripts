@@ -8,10 +8,8 @@
 
 **📝 Writer:** Tanux  
 **📅 Date:** 2026/6/6
-***
-***
-***
-
+![writer](https://img.shields.io/badge/📝_Writer-Tanux-ff69b4?style=flat-square)
+![date](https://img.shields.io/badge/📅_Date-2026--06--06-blue?style=flat-square)
 ## 写在前面
 
 建立这个项目，我感觉是一件很有意义的事——尽管开始得很迟（高考假后才动手 >︿<）。
