@@ -63,9 +63,10 @@
 
 **📝 Writer:** Tanux  
 **📅 Date:** 2026/6/6
-***
-***
-***
+![writer](https://img.shields.io/badge/📝_Writer-Tanux-ff69b4?style=flat-square)
+![date](https://img.shields.io/badge/📅_Date-2026--06--06-blue?style=flat-square)
+
+---
 ## 💻 电脑使用手册（留给下一届电教）
 
 ### 🗂️ 硬盘与分区一览
