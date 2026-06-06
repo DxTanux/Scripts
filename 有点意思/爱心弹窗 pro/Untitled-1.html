@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>爱心弹窗</title>
+<style>
+  html, body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    font-family: "微软雅黑", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    perspective: 1000px;
+    background:
+      radial-gradient(1200px 600px at 50% 45%, rgba(255, 255, 255, .65), rgba(255, 255, 255, 0) 60%),
+      radial-gradient(circle at 50% 45%, #fff4f7 0%, #c9eaff 100%);
+    transition: background 0.5s ease;
+  }
+  
+  body.dark-mode {
+    background:
+      radial-gradient(1200px 600px at 50% 45%, rgba(0, 0, 0, .6), rgba(0, 0, 0, 0) 60%),
+      radial-gradient(circle at 50% 45%, #0a0a0f 0%, #000000 100%);
+  }
+  
+  .stage {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.2s ease-out;
+  }
+  .msg {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    padding: 10px 16px;
+    border-radius: 16px;
+    color: #fff;
+    font-weight: 700;
+    font-size: clamp(14px, 3vmin, 22px);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, .28);
+    opacity: 0;
+    transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(.75) rotate(var(--rot));
+    animation: flight var(--dur) cubic-bezier(.25, .7, .3, 1) var(--delay) both;
+    box-shadow: 0 8px 26px rgba(0, 0, 0, .22), 0 0 15px rgba(255, 255, 255, 0.6);
+    will-change: transform, opacity;
+    background: var(--bg);
+    transition: color .3s ease, text-shadow .3s ease;
+  }
+
+  @keyframes flight {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(.75) rotate(var(--rot));
+    }
+    18% {
+      opacity: 1;
+    }
+    45% {
+      transform: translate(-50%, -50%) translate(calc(var(--dx) * .2), calc(var(--dy) * .2)) scale(1.06);
+    }
+    70% {
+      transform: translate(-50%, -50%) translate(calc(var(--dx) * 1.15), calc(var(--dy) * 1.15)) scale(.95) rotate(var(--rot));
+    }
+    88% {
+      transform: translate(-50%, -50%) translate(calc(var(--heart-x) * .6), calc(var(--heart-y) * .6)) scale(.9) rotate(var(--heart-rot));
+    }
+    100% {
+      opacity: 1;
+      transform: translate(-50%, -50%) translate(var(--heart-x), var(--heart-y)) scale(1) rotate(var(--heart-rot));
+    }
+  }
+
+  .msg::before,
+  .msg::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    background: inherit;
+    border-radius: 50px 50px 0 0;
+    width: 22px;
+    height: 34px;
+    opacity: 0;
+    transition: opacity .28s ease;
+    transform-origin: 0 100%;
+    transform: rotate(-45deg);
+  }
+  
+  .msg::after {
+    left: 0;
+    transform-origin: 100% 100%;
+    transform: rotate(45deg);
+  }
+  
+  .msg.heart-mode {
+    color: transparent;
+    text-shadow: none;
+  }
+  
+  .msg.heart-mode::before,
+  .msg.heart-mode::after {
+    opacity: 1;
+  }
+
+  .msg.locked {
+    animation: none;
+    transform: translate(-50%, -50%) translate(var(--heart-x), var(--heart-y)) scale(1) rotate(var(--heart-rot));
+    opacity: 1;
+  }
+
+  .msg.burst {
+    animation: burst 1.4s cubic-bezier(.17, .6, .2, 1) forwards;
+  }
+  
+  @keyframes burst {
+    0% {
+      opacity: 1;
+      transform: translate(-50%, -50%) translate(var(--heart-x), var(--heart-y)) scale(1);
+      filter: blur(0);
+    }
+    70% {
+      opacity: .9;
+      transform: translate(-50%, -50%) translate(calc(var(--heart-x) + var(--bx) * 0.7), calc(var(--heart-y) + var(--by) * 0.7)) scale(1.1) rotate(var(--rot));
+      filter: blur(.3px);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translate(calc(var(--heart-x) + var(--bx)), calc(var(--heart-y) + var(--by))) scale(2.0) rotate(var(--rot));
+      filter: blur(4px);
+    }
+  }
+
+  .msg.returning {
+    animation: returnToHeart 0.8s cubic-bezier(.34, 1.56, .64, 1) forwards;
+  }
+  
+  @keyframes returnToHeart {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translate(calc(var(--heart-x) + var(--bx)), calc(var(--heart-y) + var(--by))) scale(2.0) rotate(var(--rot));
+      filter: blur(4px);
+    }
+    50% {
+      opacity: 0.6;
+      filter: blur(2px);
+    }
+    100% {
+      opacity: 1;
+      transform: translate(-50%, -50%) translate(var(--heart-x), var(--heart-y)) scale(1) rotate(var(--heart-rot));
+      filter: blur(0);
+    }
+  }
+
+  .center-title {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(var(--title-scale, 1));
+    font-weight: 800;
+    letter-spacing: .12em;
+    font-size: clamp(18px, 4vmin, 28px);
+    color: rgba(255, 105, 180, .6);
+    text-shadow: 0 2px 10px rgba(255, 105, 180, .15);
+    opacity: 0;
+    pointer-events: none;
+    animation: titleIn 1.2s ease 0.8s both;
+    transform-origin: center center;
+  }
+  
+  @keyframes titleIn {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -55%) scale(var(--title-scale, 1));
+    }
+    to {
+      opacity: .95;
+      transform: translate(-50%, -50%) scale(var(--title-scale, 1));
+    }
+  }
+
+  .replay,
+  .settings-btn {
+    position: absolute;
+    right: 18px;
+    bottom: 18px;
+    width: 60px;
+    height: 40px;
+    padding: 0;
+    border: none;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .5);
+    backdrop-filter: blur(8px);
+    color: #222;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, .22);
+    transition: background 0.3s ease, color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .replay {
+    font-size: 14px;
+  }
+  
+  .settings-btn {
+    right: 90px;
+    font-size: 18px;
+  }
+  
+  body.dark-mode .replay,
+  body.dark-mode .settings-btn {
+    background: rgba(0, 0, 0, .5);
+    color: #fff;
+  }
+  
+  .settings-panel {
+    position: absolute;
+    right: 18px;
+    bottom: 60px;
+    padding: 20px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, .9);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, .3);
+    min-width: 200px;
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 1000;
+  }
+  
+  body.dark-mode .settings-panel {
+    background: rgba(0, 0, 0, .9);
+    color: #fff;
+  }
+  
+  .settings-panel.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+  
+  .settings-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    color: #222;
+  }
+  
+  body.dark-mode .settings-item {
+    color: #fff;
+  }
+  
+  .settings-item:last-child {
+    margin-bottom: 0;
+  }
+  
+  .settings-item label {
+    font-size: 14px;
+    font-weight: 500;
+  }
+  
+  .toggle-switch {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background: rgba(0, 0, 0, .2);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .toggle-switch.active {
+    background: #4CAF50;
+  }
+  
+  .toggle-switch::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: #fff;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .2);
+  }
+  
+  .toggle-switch.active::after {
+    transform: translateX(20px);
+  }
+  
+  .petal-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+  
+  .petal {
+    position: absolute;
+    top: -10vh;
+    width: 15px;
+    height: 15px;
+    background: #ffb6c1;
+    border-radius: 1px 15px 15px;
+    opacity: 0;
+    filter: blur(1px);
+  }
+  
+  .petal:nth-child(odd) {
+    animation: flutter 14s linear infinite;
+  }
+  
+  .petal:nth-child(even) {
+    animation: flutter-reverse 14s linear infinite;
+  }
+
+  @keyframes flutter {
+    0% {
+      transform: translateY(-10vh) translateX(0) rotate(0deg) rotateY(0deg);
+      opacity: 0;
+    }
+    10% {
+      opacity: 0.8;
+    }
+    50% {
+      transform: translateY(50vh) translateX(5vw) rotate(-20deg) rotateY(180deg);
+    }
+    90% {
+      opacity: 0.8;
+    }
+    100% {
+      transform: translateY(110vh) translateX(-5vw) rotate(20deg) rotateY(360deg);
+      opacity: 0;
+    }
+  }
+  
+  @keyframes flutter-reverse {
+    0% {
+      transform: translateY(-10vh) translateX(0) rotate(0deg) rotateY(0deg);
+      opacity: 0;
+    }
+    10% {
+      opacity: 0.8;
+    }
+    50% {
+      transform: translateY(50vh) translateX(-5vw) rotate(20deg) rotateY(-180deg);
+    }
+    90% {
+      opacity: 0.8;
+    }
+    100% {
+      transform: translateY(110vh) translateX(5vw) rotate(-20deg) rotateY(-360deg);
+      opacity: 0;
+    }
+  }
+
+  .logo {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 100;
+    text-align: center;
+    animation: logoBreathe 3s ease-in-out infinite;
+  }
+  .logo img {
+    width: 100px;
+    height: auto;
+    border-radius: 50%;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.7));
+  }
+  .logo p {
+    margin: 5px 0 0 0;
+    color: #3935a9;
+    font-family: 'STKaiti', 'KaiTi', 'SimSun', 'serif';
+    font-weight: bold;
+    font-size: 16px;
+    text-shadow: 0 0 8px rgba(255, 182, 193, 0.9);
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+  }
+  
+  body.dark-mode .logo p {
+    color: #ffffff;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+  }
+  
+  @keyframes logoBreathe {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+  }
+</style>
+</head>
+<body>
+  
+  <div class="petal-container" id="petalContainer">
+  </div>
+  
+  <audio id="background-music" src="https://lf26-music-east.douyinstatic.com/obj/ies-music-hj/7495920705440140091.mp3" loop playsinline autoplay>
+   您的浏览器不支持音频播放
+  </audio>
+  
+  <div class="stage" id="stage">
+    <div class="center-title" id="title">for you ♥</div>
+  </div>
+  <button class="settings-btn" id="settingsBtn">⚙️</button>
+  <button class="replay" id="replay">重放</button>
+  
+  <div class="settings-panel" id="settingsPanel">
+    <div class="settings-item">
+      <label>暗黑模式</label>
+      <div class="toggle-switch" id="darkModeToggle"></div>
+    </div>
+    <div class="settings-item">
+      <label>显示Logo</label>
+      <div class="toggle-switch active" id="logoToggle"></div>
+    </div>
+  </div>
+
+  <div class="logo">
+    <img src="TX.jpg" alt="Logo">
+    <p>Tanux</p>
+  </div>
+
+<script>
+const tips = [
+  '想念在风里飘', '月亮为你亮', '喜欢你很久了', '你是我的心动', '温柔落在人间',
+  '星光都为你闪', '梦里有你真好', '世界因你柔软', '心跳为你加速', '有你真好',
+  '你是独一无二的光', '遇见你是浪漫的开始', '晚风也温柔了', '你的笑融化星河',
+  '想陪你看星星', '今夜的梦给你', '宇宙都在偏爱你', '你是人间的奇迹',
+  '拥抱要紧一点', '想你成习惯了', '一瞬也是永恒', '你眼里有星星', '你的温柔让我沦陷',
+  '风都是甜的', '为你心动不止', '想成为你的例外', '心有桃花一片', '你是我梦里的光',
+  '想和你看海', '此刻的风想你', '遇见你后时间变慢', '所有浪漫都与你有关',
+  '想靠近你一点', '你的名字是我心事', '心软是因为你', '想牵你的手看日落',
+  '每次想你星星都亮了', '心跳藏不住', '有你世界亮一点', '甜在风里也在心里'
+];
+const stage = document.getElementById('stage');
+const replay = document.getElementById('replay');
+const title = document.getElementById('title');
+const music = document.getElementById('background-music');
+const petalContainer = document.getElementById('petalContainer');
+const settingsBtn = document.getElementById('settingsBtn');
+const settingsPanel = document.getElementById('settingsPanel');
+const darkModeToggle = document.getElementById('darkModeToggle');
+const logoToggle = document.getElementById('logoToggle');
+const logo = document.querySelector('.logo');
+
+let isHeartLocked = false;
+let petalInterval = null;
+let heartBeatAnimationId = null;
+let hasBurst = false;
+let allLockedChecked = false;
+
+let currentScale = 1;
+
+function updateStageTransform() {
+  stage.style.transform = `scale(${currentScale})`;
+  const titleScale = 1 / currentScale;
+  title.style.setProperty('--title-scale', titleScale);
+  const currentTitleOpacity = getComputedStyle(title).opacity;
+  if (parseFloat(currentTitleOpacity) > 0) {
+    title.style.transform = `translate(-50%, -50%) scale(${titleScale})`;
+  }
+}
+
+function startHeartBeat() {
+  if (heartBeatAnimationId) return;
+  
+  const startTime = Date.now();
+  const duration = 2200; // 跳动周期时长（毫秒），数值越大跳动越慢
+  
+  function animate() {
+    if (!stage.classList.contains('heart-beat')) {
+      heartBeatAnimationId = null;
+      return;
+    }
+    
+    const elapsed = (Date.now() - startTime) % duration;
+    const progress = elapsed / duration;
+    
+    let scale;
+    if (progress < 0.5) {
+      const t = progress * 2;
+      const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      scale = 1 + (0.08 * eased); // 0.08 为跳动幅度，数值越大跳动越明显（最大缩放倍数 = 1 + 0.08）
+    } else {
+      const t = (progress - 0.5) * 2;
+      const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      scale = 1.08 - (0.08 * eased); // 从最大缩放回到正常大小
+    }
+    
+    currentScale = scale;
+    updateStageTransform();
+    heartBeatAnimationId = requestAnimationFrame(animate);
+  }
+  
+  animate();
+}
+
+function stopHeartBeat() {
+  if (heartBeatAnimationId) {
+    cancelAnimationFrame(heartBeatAnimationId);
+    heartBeatAnimationId = null;
+  }
+  currentScale = 1;
+  updateStageTransform();
+  title.style.setProperty('--title-scale', '1');
+}
+
+const directions = [
+  { dx: '0vw', dy: '-80vh' }, { dx: '0vw', dy: '80vh' },
+  { dx: '-80vw', dy: '0vh' }, { dx: '80vw', dy: '0vh' },
+  { dx: '-70vw', dy: '-70vh' }, { dx: '70vw', dy: '-70vh' },
+  { dx: '-70vw', dy: '70vh' }, { dx: '70vw', dy: '70vh' },
+  { dx: '0vw', dy: '-60vh' }, { dx: '0vw', dy: '60vh' },
+  { dx: '-60vw', dy: '0vh' }, { dx: '60vw', dy: '0vh' }
+];
+
+function rand(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
+function randomGradient() {
+  const arr = [
+    ['#ff758c', '#ff7eb3'], ['#a18cd1', '#fbc2eb'],
+    ['#f6d365', '#fda085'], ['#84fab0', '#8fd3f4'],
+    ['#f093fb', '#f5576c'], ['#4facfe', '#00f2fe'],
+    ['#43e97b', '#38f9d7'], ['#fa709a', '#fee140'],
+    ['#30cfd0', '#330867'], ['#5ee7df', '#b490ca']
+  ];
+  const [c1, c2] = arr[Math.floor(Math.random() * arr.length)];
+  return `linear-gradient(135deg, ${c1}, ${c2})`;
+}
+
+function heartXY(t) {
+  const s = 20; // 爱心大小系数，数值越大爱心越大（建议范围：15-30）
+  const x = s * (16 * Math.sin(t) ** 3);
+  const y = -s * (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+  return { x: x + 'px', y: y + 'px' };
+}
+
+function createMsg(i, total) {
+  const el = document.createElement('div');
+  el.className = 'msg';
+
+  const d = directions[Math.floor(Math.random() * directions.length)];
+  el.style.setProperty('--dx', d.dx);
+  el.style.setProperty('--dy', d.dy);
+  el.style.setProperty('--rot', rand(-55, 55) + 'deg'); // 弹窗初始旋转角度范围（度）
+  el.style.setProperty('--dur', rand(6.8, 8.6) + 's'); // 弹窗飞行动画时长（秒），数值越大飞得越慢
+  el.style.setProperty('--delay', (i * 0.11 + rand(0, 0.35)) + 's'); // 弹窗出现延迟：0.11为每个弹窗间隔（秒），0.35为随机延迟范围（秒）
+  el.style.setProperty('--bg', randomGradient());
+
+  const t = (i / total) * Math.PI * 2;
+  const { x, y } = heartXY(t);
+  el.style.setProperty('--heart-x', x);
+  el.style.setProperty('--heart-y', y);
+  el.style.setProperty('--heart-rot', rand(-18, 18) + 'deg'); // 弹窗在爱心位置的旋转角度范围（度）
+
+  const span = document.createElement('span');
+  span.className = 'text';
+  span.textContent = tips[Math.floor(Math.random() * tips.length)];
+  el.appendChild(span);
+
+  const delay = parseFloat(el.style.getPropertyValue('--delay'));
+  const dur = parseFloat(el.style.getPropertyValue('--dur'));
+  const switchAt = delay + dur * 0.86; // 0.86 为弹窗切换为爱心形状的时机（动画进度的86%）
+  const switchTimer = setTimeout(() => {
+    el.classList.add('heart-mode');
+  }, switchAt * 1000);
+
+  el.addEventListener('animationend', () => {
+    clearTimeout(switchTimer);
+    el.classList.add('heart-mode', 'locked');
+
+    const spread = rand(140, 260); // 爆炸时弹窗散开的距离范围（像素）
+    const ang = rand(0, Math.PI * 2);
+    const bx = Math.cos(ang) * spread;
+    const by = Math.sin(ang) * spread;
+    el.style.setProperty('--bx', bx + 'px');
+    el.style.setProperty('--by', by + 'px');
+    
+    if (!allLockedChecked) {
+      const allMsgs = stage.querySelectorAll('.msg');
+      const lockedMsgs = stage.querySelectorAll('.msg.locked');
+      const threshold = Math.ceil(allMsgs.length * 0.9); // 0.9 为跳动开始阈值，当90%弹窗归位时开始跳动（范围：0-1）
+      if (allMsgs.length > 0 && lockedMsgs.length >= threshold) {
+        allLockedChecked = true;
+        isHeartLocked = true;
+        stage.classList.add('heart-beat');
+        startHeartBeat();
+        continuePetalsAfterHeartBeat();
+      }
+    }
+  }, { once: true });
+  stage.appendChild(el);
+}
+
+function finalBurst() {
+  if (hasBurst) return;
+  
+  const lockedMsgs = stage.querySelectorAll('.msg.locked');
+  if (lockedMsgs.length === 0) {
+    setTimeout(() => {
+      finalBurst();
+    }, 500); // 如果弹窗未归位，重试延迟（毫秒）
+    return;
+  }
+  
+  hasBurst = true;
+  
+  lockedMsgs.forEach(el => {
+    const jitter = rand(0, 200); // 爆炸延迟随机范围（毫秒），让弹窗不同时爆炸
+    setTimeout(() => el.classList.add('burst'), jitter);
+    el.addEventListener('animationend', () => {
+      el.classList.remove('burst');
+      el.classList.add('returning');
+      
+      el.addEventListener('animationend', () => {
+        el.classList.remove('returning');
+        el.classList.add('locked');
+      }, { once: true });
+    }, { once: true });
+  });
+}
+
+function createPetals() {
+  petalContainer.innerHTML = '';
+  clearInterval(petalInterval);
+  
+  const MAX_PETALS = 30; // 初始阶段花瓣数量（在弹窗动画期间创建）
+  const TOTAL_TIME_MS = (8.6 + 0.35 + 0.3 + 2.2) * 1000; // 总动画时长（毫秒）：8.6最大飞行时长 + 0.35最大延迟 + 0.3缓冲 + 2.2额外时间
+  const INTERVAL_MS = TOTAL_TIME_MS / MAX_PETALS; // 每个花瓣的创建间隔（毫秒）
+  let petalCount = 0;
+  
+  petalInterval = setInterval(() => {
+    if (petalCount >= MAX_PETALS) {
+      clearInterval(petalInterval);
+      return;
+    }
+    
+    const petal = document.createElement('div');
+    petal.className = 'petal';
+    petal.style.left = Math.random() * 100 + '%';
+    petal.style.animationDelay = (Math.random() * -5) + 's'; // 花瓣动画延迟（秒），负值表示提前开始
+    petal.style.animationDuration = (12 + Math.random() * 5) + 's'; // 花瓣飘落动画时长（秒），12-17秒之间随机
+    petal.style.animationName = petalCount % 2 === 0 ? 'flutter' : 'flutter-reverse';
+    
+    petalContainer.appendChild(petal);
+    petalCount++;
+  }, INTERVAL_MS);
+}
+
+function continuePetalsAfterHeartBeat() {
+  let additionalPetalCount = 0;
+  const MAX_ADDITIONAL_PETALS = 500; // 爱心跳动后额外创建的花瓣数量
+  const ADDITIONAL_INTERVAL = 600; // 额外花瓣的创建间隔（毫秒），数值越小创建越快
+  
+  const additionalPetalInterval = setInterval(() => {
+    if (additionalPetalCount >= MAX_ADDITIONAL_PETALS || !stage.classList.contains('heart-beat')) {
+      clearInterval(additionalPetalInterval);
+      return;
+    }
+    
+    const petal = document.createElement('div');
+    petal.className = 'petal';
+    petal.style.left = Math.random() * 100 + '%';
+    petal.style.animationDelay = '0s';
+    petal.style.animationDuration = (12 + Math.random() * 5) + 's'; // 额外花瓣的飘落时长（秒），12-17秒之间随机
+    petal.style.animationName = additionalPetalCount % 2 === 0 ? 'flutter' : 'flutter-reverse';
+    
+    petalContainer.appendChild(petal);
+    additionalPetalCount++;
+  }, ADDITIONAL_INTERVAL);
+}
+
+function play() {
+  music.currentTime = 0; // 重置音乐播放位置到开头
+  music.play().catch(e => console.warn("Autoplay was blocked by browser."));
+  
+  isHeartLocked = false;
+  hasBurst = false;
+  allLockedChecked = false;
+  stopHeartBeat();
+  stage.classList.remove('heart-beat');
+  
+  stage.querySelectorAll('.msg').forEach(n => n.remove());
+  title.style.opacity = 0;
+  title.style.transform = 'translate(-50%, -50%) scale(1)';
+
+  const TOTAL = 220; // 弹窗总数量，数值越大爱心越密集（建议范围：150-300）
+  for (let i = 0; i < TOTAL; i++) {
+    createMsg(i, TOTAL);
+  }
+
+  setTimeout(() => {
+    title.style.opacity = 1;
+  }, 1400); // 标题"for you ♥"显示延迟（毫秒）
+  
+  createPetals();
+  
+  const TOTAL_TIME_MS = (8.6 + 0.35 + 0.3 + 2.2) * 1000; // 爆炸效果触发时间（毫秒），需在弹窗动画完成后
+  setTimeout(finalBurst, TOTAL_TIME_MS);
+}
+
+let isDarkMode = false;
+let isLogoVisible = true;
+
+settingsBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  settingsPanel.classList.toggle('show');
+});
+
+document.addEventListener('click', (e) => {
+  if (!settingsPanel.contains(e.target) && e.target !== settingsBtn) {
+    settingsPanel.classList.remove('show');
+  }
+});
+
+darkModeToggle.addEventListener('click', () => {
+  isDarkMode = !isDarkMode;
+  darkModeToggle.classList.toggle('active');
+  if (isDarkMode) {
+    document.body.classList.add('dark-mode');
+  } else {
+    document.body.classList.remove('dark-mode');
+  }
+});
+
+logoToggle.addEventListener('click', () => {
+  isLogoVisible = !isLogoVisible;
+  logoToggle.classList.toggle('active');
+  if (isLogoVisible) {
+    logo.style.display = 'block';
+  } else {
+    logo.style.display = 'none';
+  }
+});
+
+play();
+replay.onclick = play;
+</script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D 手势粒子交互 - 终极立体版</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <div id="camera-feed" class="video-mode-off">
+        <video id="input-video" playsinline></video>
+        <canvas id="hand-overlay"></canvas>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <div id="ui-panel">
+        <h3>✨ 粒子交互核心</h3>
+        
+        <div class="control-group">
+            <label>🔮 选择模型:</label>
+            <select id="shape-select">
+                <option value="heart">❤️ 爱心</option>
+                <option value="saturn">🪐 土星环</option>
+                <option value="sphere">🌌 星球</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label>📷 摄像头开关:</label>
+            <label class="toggle-switch">
+                <input type="checkbox" id="camera-toggle">
+                <span class="slider"></span>
+                <span class="toggle-labels">
+                    <span class="on">开启</span>
+                    <span class="off">关闭</span>
+                </span>
+            </label>
+        </div>
+
+        <div class="control-group">
+            <label>🎨 粒子颜色:</label>
+            <input type="color" id="color-picker" value="#ff0055">
+        </div>
+
+        <div class="control-group status-group">
+             <span id="hand-status">📡 系统初始化中...</span>
+        </div>
+
+        <button id="collapse-panel-btn" title="折叠面板">⇱ 收起</button>
+
+        <button id="fullscreen-btn">📺 全屏沉浸</button>
+    </div>
+
+    <button id="panel-fab" class="panel-fab" title="展开控制面板">⚙️</button>
+
+    <div id="logo-section">
+        <img src="TX.jpg" alt="TX Logo">
+        <span>Tanux</span>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
